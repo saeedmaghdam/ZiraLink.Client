@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiraLink.Client", "src\ZiraLink.Client\ZiraLink.Client.csproj", "{FEBF93B1-8EDD-4579-A917-49E63A89889B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEBF93B1-8EDD-4579-A917-49E63A89889B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEBF93B1-8EDD-4579-A917-49E63A89889B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEBF93B1-8EDD-4579-A917-49E63A89889B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEBF93B1-8EDD-4579-A917-49E63A89889B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {48D09BEB-64DF-4DF9-A970-6C95E5E96846}
+	EndGlobalSection
+EndGlobal
