@@ -195,7 +195,7 @@ namespace ZiraLink.Client
             if (!oldUri.Authority.StartsWith("www"))
             {
                 pattern = $"([H|h][T|t][T|t][P|p])://www.{oldUri.Authority}";
-                newText = Regex.Replace(text, pattern, newUrl);
+                newText = Regex.Replace(newText, pattern, newUrl);
 
                 pattern = $"([H|h][T|t][T|t][P|p][S|s])://www.{oldUri.Authority}";
                 newText = Regex.Replace(newText, pattern, newUrl);
