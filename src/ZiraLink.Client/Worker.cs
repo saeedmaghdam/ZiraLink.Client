@@ -70,13 +70,10 @@ namespace ZiraLink.Client
                     var internalUri = new Uri(Encoding.UTF8.GetString((byte[])internalUrlByteArray));
                     var host = Encoding.UTF8.GetString((byte[])hostByteArray);
 
-                    var response = CreateAndSendRequestAsync(requestModel, internalUri);
+                    var response = await CreateAndSendRequestAsync(requestModel, internalUri);
 
-                    //// Forward the request to the target application
-                    //var response = await ForwardRequestToTargetApplication(host, internalUri, targetRequestDetails);
                     var responseBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(response));
 
-                    // Publish the response to RabbitMQ
                     var responseProperties = _channel.CreateBasicProperties();
                     responseProperties.MessageId = requestID;
 
@@ -151,8 +148,8 @@ namespace ZiraLink.Client
                 if (IsContentOfType(responseMessage, "text/html") || IsContentOfType(responseMessage, "text/javascript"))
                 {
                     var stringContent = Encoding.UTF8.GetString(content);
-                    //var newContent = Regex.Replace(stringContent, "", "");
-                    httpResponseModel.StringContent = stringContent;
+                    var newContent = ReplaceUrls(stringContent, internalUri, new Uri(requestModel.RequestUrl));
+                    httpResponseModel.StringContent = newContent;
                 }
 
                 httpResponseModel.IsSuccessStatusCode = responseMessage.IsSuccessStatusCode;
@@ -183,6 +180,27 @@ namespace ZiraLink.Client
             if (HttpMethods.IsPut(method)) return HttpMethod.Put;
             if (HttpMethods.IsTrace(method)) return HttpMethod.Trace;
             return new HttpMethod(method);
+        }
+
+        private static string ReplaceUrls(string text, Uri oldUri, Uri newUri)
+        {
+            var schemaPattern = string.Empty;
+            if (oldUri.Scheme == "http")
+                schemaPattern = "http|HTTP|Http";
+            else if (oldUri.Scheme == "https")
+                schemaPattern = "https|HTTPS|Https";
+
+            var pattern = $"({schemaPattern})://{oldUri.Authority}";
+            var newUrl = $"{newUri.Scheme}://{newUri.Authority}";
+            var newText = Regex.Replace(text, pattern, newUrl);
+
+            if (!oldUri.Authority.StartsWith("www"))
+            {
+                pattern = $"({schemaPattern})://www.{oldUri.Authority}";
+                newText = Regex.Replace(newText, pattern, newUrl);
+            }
+
+            return newText;
         }
     }
 }
