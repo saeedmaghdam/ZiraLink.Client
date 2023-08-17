@@ -184,19 +184,20 @@ namespace ZiraLink.Client
 
         private static string ReplaceUrls(string text, Uri oldUri, Uri newUri)
         {
-            var schemaPattern = string.Empty;
-            if (oldUri.Scheme == "http")
-                schemaPattern = "http|HTTP|Http";
-            else if (oldUri.Scheme == "https")
-                schemaPattern = "https|HTTPS|Https";
-
-            var pattern = $"({schemaPattern})://{oldUri.Authority}";
             var newUrl = $"{newUri.Scheme}://{newUri.Authority}";
+
+            var pattern = $"([H|h][T|t][T|t][P|p])://{oldUri.Authority}";
             var newText = Regex.Replace(text, pattern, newUrl);
+
+            pattern = $"([H|h][T|t][T|t][P|p][S|s])://{oldUri.Authority}";
+            newText = Regex.Replace(newText, pattern, newUrl);
 
             if (!oldUri.Authority.StartsWith("www"))
             {
-                pattern = $"({schemaPattern})://www.{oldUri.Authority}";
+                pattern = $"([H|h][T|t][T|t][P|p])://www.{oldUri.Authority}";
+                newText = Regex.Replace(text, pattern, newUrl);
+
+                pattern = $"([H|h][T|t][T|t][P|p][S|s])://www.{oldUri.Authority}";
                 newText = Regex.Replace(newText, pattern, newUrl);
             }
 
