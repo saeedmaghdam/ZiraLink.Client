@@ -7,13 +7,12 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Channels;
 
 namespace ZiraLink.Client
 {
     public class Worker : BackgroundService
     {
-        private const string RequestQueueName = "logon_request_bus";
-
         private readonly ILogger<Worker> _logger;
 
         private IModel _channel;
@@ -28,6 +27,33 @@ namespace ZiraLink.Client
             var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
             var connection = factory.CreateConnection();
             _channel = connection.CreateModel();
+
+            var responseExchangeName = "response";
+            var responseQueueName = "response_bus";
+            var requestQueueName = "logon_request_bus";
+
+            _channel.ExchangeDeclare(exchange: responseExchangeName,
+                type: "direct",
+                durable: false,
+                autoDelete: false,
+                arguments: null);
+
+            _channel.QueueDeclare(queue: responseQueueName,
+                     durable: false,
+                     exclusive: false,
+                     autoDelete: false,
+                     arguments: null);
+
+            _channel.QueueBind(queue: responseQueueName,
+               exchange: responseExchangeName,
+               routingKey: "",
+               arguments: null);
+
+            _channel.QueueDeclare(queue: requestQueueName,
+                     durable: false,
+                     exclusive: false,
+                     autoDelete: false,
+                     arguments: null);
 
             // Start consuming requests
             var consumer = new EventingBasicConsumer(_channel);
@@ -55,7 +81,7 @@ namespace ZiraLink.Client
                     var responseProperties = _channel.CreateBasicProperties();
                     responseProperties.MessageId = requestID;
 
-                    _channel.BasicPublish(exchange: "response", routingKey: "", basicProperties: responseProperties, body: responseBytes);
+                    _channel.BasicPublish(exchange: responseExchangeName, routingKey: "", basicProperties: responseProperties, body: responseBytes);
                 }
                 catch (Exception ex)
                 {
@@ -65,7 +91,7 @@ namespace ZiraLink.Client
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
 
-            _channel.BasicConsume(queue: RequestQueueName, autoAck: false, consumer: consumer);
+            _channel.BasicConsume(queue: requestQueueName, autoAck: false, consumer: consumer);
 
             // Wait for the cancellation token to be triggered
             await Task.Delay(Timeout.Infinite, stoppingToken);
