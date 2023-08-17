@@ -6,8 +6,6 @@ using SharpCompress.Archives;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
-using Microsoft.Extensions.Hosting;
-using System.Threading.Channels;
 
 namespace ZiraLink.Client
 {
@@ -62,7 +60,9 @@ namespace ZiraLink.Client
                 try
                 {
                     var requestID = ea.BasicProperties.MessageId;
-                    var requestData = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var requestModel = JsonSerializer.Deserialize<HttpRequestModel>(body);
+
                     if (!ea.BasicProperties.Headers.TryGetValue("IntUrl", out var internalUrlByteArray))
                         throw new ApplicationException("Internal url not found");
                     if (!ea.BasicProperties.Headers.TryGetValue("Host", out var hostByteArray))
@@ -70,12 +70,69 @@ namespace ZiraLink.Client
                     var internalUri = new Uri(Encoding.UTF8.GetString((byte[])internalUrlByteArray));
                     var host = Encoding.UTF8.GetString((byte[])hostByteArray);
 
-                    // Extract the target request details from the request data
-                    var targetRequestDetails = GetTargetRequestDetails(requestData);
+                    var httpRequestMessage = new HttpRequestMessage();
 
-                    // Forward the request to the target application
-                    var response = await ForwardRequestToTargetApplication(host, internalUri, targetRequestDetails);
-                    var responseBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(response));
+                    if (!HttpMethods.IsGet(requestModel.Method) &&
+                        !HttpMethods.IsHead(requestModel.Method) &&
+                        !HttpMethods.IsDelete(requestModel.Method) &&
+                        !HttpMethods.IsTrace(requestModel.Method))
+                    {
+                        var stream = new MemoryStream(requestModel.Bytes);
+                        var streamContent = new StreamContent(stream);
+                        httpRequestMessage.Content = streamContent;
+                    }
+
+                    foreach (var header in requestModel.Headers)
+                        httpRequestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+
+                    var originalUri = new Uri(requestModel.RequestUrl);
+                    var uri = new Uri(internalUri, originalUri.PathAndQuery);
+
+                    httpRequestMessage.RequestUri = uri;
+                    httpRequestMessage.Headers.Host = internalUri.Authority;
+                    httpRequestMessage.Method = GetMethod(requestModel.Method);
+
+                    var handler = new HttpClientHandler();
+                    handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12; // Adjust the SSL/TLS protocol version as needed
+                    handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
+
+                    using var httpClient = new HttpClient(handler);
+
+                    var httpResponseModel = new HttpResponseModel();
+                    using (var responseMessage = await httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None))
+                    {
+                        httpResponseModel.HttpStatusCode = responseMessage.StatusCode;
+
+                        var headers = new List<KeyValuePair<string, IEnumerable<string>>>();
+                        foreach (var header in responseMessage.Content.Headers)
+                            headers.Add(new KeyValuePair<string, IEnumerable<string>>(header.Key, header.Value));
+
+                        foreach (var header in responseMessage.Headers)
+                        {
+                            if (!headers.Any(x => x.Key == header.Key))
+                                headers.Add(new KeyValuePair<string, IEnumerable<string>>(header.Key, header.Value));
+                        }
+
+
+                        headers = headers.Where(x => x.Key != "transfer-encoding").ToList();
+
+                        httpResponseModel.Headers = headers;
+
+                        var content = await responseMessage.Content.ReadAsByteArrayAsync();
+                        httpResponseModel.Bytes = content;
+                        if (IsContentOfType(responseMessage, "text/html") || IsContentOfType(responseMessage, "text/javascript"))
+                        {
+                            var stringContent = Encoding.UTF8.GetString(content);
+                            //var newContent = Regex.Replace(stringContent, "", "");
+                            httpResponseModel.StringContent = stringContent;
+                        }
+
+                        httpResponseModel.IsSuccessStatusCode = responseMessage.IsSuccessStatusCode;
+                    }
+
+                    //// Forward the request to the target application
+                    //var response = await ForwardRequestToTargetApplication(host, internalUri, targetRequestDetails);
+                    var responseBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(httpResponseModel));
 
                     // Publish the response to RabbitMQ
                     var responseProperties = _channel.CreateBasicProperties();
@@ -95,48 +152,6 @@ namespace ZiraLink.Client
 
             // Wait for the cancellation token to be triggered
             await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-
-        private IDictionary<string, string> GetTargetRequestDetails(string requestData)
-        {
-            var requestLines = requestData.Split("\n");
-            if (requestLines.Length > 0)
-            {
-                var targetRequestDetails = new Dictionary<string, string>();
-
-                // Parse the request data and extract method, headers, and path
-                var firstLine = requestLines[0].Trim();
-                var parts = firstLine.Split(" ");
-                if (parts.Length >= 3)
-                {
-                    targetRequestDetails["Method"] = parts[0].Trim();
-                    targetRequestDetails["Path"] = parts[1].Trim();
-                    targetRequestDetails["HttpVersion"] = parts[2].Trim();
-                }
-
-                for (int i = 1; i < requestLines.Length; i++)
-                {
-                    var line = requestLines[i].Trim();
-                    if (line.StartsWith(":"))
-                        continue;
-                    if (string.IsNullOrEmpty(line))
-                    {
-                        break;
-                    }
-
-                    var headerParts = line.Split(":");
-                    if (headerParts.Length >= 2)
-                    {
-                        var headerKey = headerParts[0].Trim();
-                        var headerValue = string.Join(":", headerParts.Skip(1)).Trim();
-                        targetRequestDetails[headerKey] = headerValue;
-                    }
-                }
-
-                return targetRequestDetails;
-            }
-
-            throw new ArgumentException("Invalid request data.");
         }
 
         private async Task<HttpResponseModel> ForwardRequestToTargetApplication(string host, Uri internalUri, IDictionary<string, string> targetRequestDetails)
@@ -185,6 +200,7 @@ namespace ZiraLink.Client
 
             // Decompress the byte array
             byte[] decompressedBytes = await Decompress(response, contentBytes, httpResponse);
+            decompressedBytes = contentBytes;
 
             if (path == "/")
             {
@@ -293,6 +309,30 @@ namespace ZiraLink.Client
 
             // No supported compression method found
             throw new InvalidOperationException("Unsupported compression method.");
+        }
+
+        private bool IsContentOfType(HttpResponseMessage responseMessage, string type)
+        {
+            var result = false;
+
+            if (responseMessage.Content?.Headers?.ContentType != null)
+            {
+                result = responseMessage.Content.Headers.ContentType.MediaType == type;
+            }
+
+            return result;
+        }
+
+        private static HttpMethod GetMethod(string method)
+        {
+            if (HttpMethods.IsDelete(method)) return HttpMethod.Delete;
+            if (HttpMethods.IsGet(method)) return HttpMethod.Get;
+            if (HttpMethods.IsHead(method)) return HttpMethod.Head;
+            if (HttpMethods.IsOptions(method)) return HttpMethod.Options;
+            if (HttpMethods.IsPost(method)) return HttpMethod.Post;
+            if (HttpMethods.IsPut(method)) return HttpMethod.Put;
+            if (HttpMethods.IsTrace(method)) return HttpMethod.Trace;
+            return new HttpMethod(method);
         }
     }
 }
