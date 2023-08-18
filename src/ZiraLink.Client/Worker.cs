@@ -22,7 +22,8 @@ namespace ZiraLink.Client
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // Set up RabbitMQ connection and channels
-            var factory = new ConnectionFactory { HostName = "localhost", Port = 5672, UserName = "guest", Password = "guest" };
+            var factory = new ConnectionFactory();
+            factory.Uri = new Uri(Environment.GetEnvironmentVariable("ZIRALINK_CONNECTIONSTRINGS_RABBITMQ")!);
             var connection = factory.CreateConnection();
             _channel = connection.CreateModel();
 
