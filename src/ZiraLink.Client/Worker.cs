@@ -3,43 +3,55 @@ using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
-using System.Net.WebSockets;
 using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client
 {
     public class Worker : BackgroundService
     {
-        private const string USERNAME = "logon";
+        private string _username;
         private readonly ILogger<Worker> _logger;
         private readonly WebSocketService _webSocketService;
+        private readonly SignalService _signalService;
 
-        public Worker(ILogger<Worker> logger, WebSocketService webSocketService) {
+        public Worker(ILogger<Worker> logger, WebSocketService webSocketService, SignalService signalService)
+        {
             _logger = logger;
             _webSocketService = webSocketService;
+            _signalService = signalService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // Set up RabbitMQ connection and channels
-            var factory = new ConnectionFactory();
-            factory.DispatchConsumersAsync = true;
-            factory.Uri = new Uri(Environment.GetEnvironmentVariable("ZIRALINK_CONNECTIONSTRINGS_RABBITMQ")!);
-            var connection = factory.CreateConnection();
-            var channel = connection.CreateModel();
+            var _ = Task.Run(async () =>
+            {
+                if (!System.IO.File.Exists("profile"))
+                    _signalService.WaitOne();
 
-            await InitializeHttpRequestConsumerAsync(channel);
-            await InitializeWebSocketConsumerAsync(channel);
+                var content = System.IO.File.ReadAllText("profile");
+                var profile = JsonSerializer.Deserialize<ProfileViewModel>(content);
+                _username = profile.Username;
 
-            // Wait for the cancellation token to be triggered
-            await Task.Delay(Timeout.Infinite, stoppingToken);
+                // Set up RabbitMQ connection and channels
+                var factory = new ConnectionFactory();
+                factory.DispatchConsumersAsync = true;
+                factory.Uri = new Uri(Environment.GetEnvironmentVariable("ZIRALINK_CONNECTIONSTRINGS_RABBITMQ")!);
+                var connection = factory.CreateConnection();
+                var channel = connection.CreateModel();
+
+                await InitializeHttpRequestConsumerAsync(channel);
+                await InitializeWebSocketConsumerAsync(channel);
+
+                // Wait for the cancellation token to be triggered
+                await Task.Delay(Timeout.Infinite, stoppingToken);
+            });
         }
 
         private async Task InitializeHttpRequestConsumerAsync(IModel channel)
         {
             var responseExchangeName = "response";
             var responseQueueName = "response_bus";
-            var requestQueueName = $"{USERNAME}_request_bus";
+            var requestQueueName = $"{_username}_request_bus";
 
             channel.ExchangeDeclare(exchange: responseExchangeName,
                 type: "direct",
@@ -103,7 +115,7 @@ namespace ZiraLink.Client
 
         private async Task InitializeWebSocketConsumerAsync(IModel channel)
         {
-            var serverBusQueueName = $"{USERNAME}_websocket_server_bus";
+            var serverBusQueueName = $"{_username}_websocket_server_bus";
             channel.QueueDeclare(queue: serverBusQueueName,
                      durable: false,
                      exclusive: false,
