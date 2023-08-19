@@ -1,8 +1,11 @@
 ﻿using ZiraLink.Client;
+using ZiraLink.Client.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<WebSocketService>();
+
 builder.Services.AddRazorPages();
 builder.Services.AddHostedService<Worker>();
 

@@ -1,61 +1,71 @@
-﻿using System.IO.Compression;
-using System.Net;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Text;
-using SharpCompress.Archives;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
+using System.Net.WebSockets;
+using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client
 {
     public class Worker : BackgroundService
     {
+        private const string USERNAME = "logon";
         private readonly ILogger<Worker> _logger;
+        private readonly WebSocketService _webSocketService;
 
-        private IModel _channel;
-
-        public Worker(ILogger<Worker> logger) => _logger = logger;
-
-
+        public Worker(ILogger<Worker> logger, WebSocketService webSocketService) {
+            _logger = logger;
+            _webSocketService = webSocketService;
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             // Set up RabbitMQ connection and channels
             var factory = new ConnectionFactory();
+            factory.DispatchConsumersAsync = true;
             factory.Uri = new Uri(Environment.GetEnvironmentVariable("ZIRALINK_CONNECTIONSTRINGS_RABBITMQ")!);
             var connection = factory.CreateConnection();
-            _channel = connection.CreateModel();
+            var channel = connection.CreateModel();
 
+            await InitializeHttpRequestConsumerAsync(channel);
+            await InitializeWebSocketConsumerAsync(channel);
+
+            // Wait for the cancellation token to be triggered
+            await Task.Delay(Timeout.Infinite, stoppingToken);
+        }
+
+        private async Task InitializeHttpRequestConsumerAsync(IModel channel)
+        {
             var responseExchangeName = "response";
             var responseQueueName = "response_bus";
-            var requestQueueName = "logon_request_bus";
+            var requestQueueName = $"{USERNAME}_request_bus";
 
-            _channel.ExchangeDeclare(exchange: responseExchangeName,
+            channel.ExchangeDeclare(exchange: responseExchangeName,
                 type: "direct",
                 durable: false,
                 autoDelete: false,
                 arguments: null);
 
-            _channel.QueueDeclare(queue: responseQueueName,
+            channel.QueueDeclare(queue: responseQueueName,
                      durable: false,
                      exclusive: false,
                      autoDelete: false,
                      arguments: null);
 
-            _channel.QueueBind(queue: responseQueueName,
+            channel.QueueBind(queue: responseQueueName,
                exchange: responseExchangeName,
                routingKey: "",
                arguments: null);
 
-            _channel.QueueDeclare(queue: requestQueueName,
+            channel.QueueDeclare(queue: requestQueueName,
                      durable: false,
                      exclusive: false,
                      autoDelete: false,
                      arguments: null);
 
             // Start consuming requests
-            var consumer = new EventingBasicConsumer(_channel);
+            var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (model, ea) =>
             {
                 try
@@ -75,23 +85,88 @@ namespace ZiraLink.Client
 
                     var responseBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(response));
 
-                    var responseProperties = _channel.CreateBasicProperties();
+                    var responseProperties = channel.CreateBasicProperties();
                     responseProperties.MessageId = requestID;
 
-                    _channel.BasicPublish(exchange: responseExchangeName, routingKey: "", basicProperties: responseProperties, body: responseBytes);
+                    channel.BasicPublish(exchange: responseExchangeName, routingKey: "", basicProperties: responseProperties, body: responseBytes);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex.Message);
                 }
 
-                _channel.BasicAck(ea.DeliveryTag, false);
+                channel.BasicAck(ea.DeliveryTag, false);
             };
 
-            _channel.BasicConsume(queue: requestQueueName, autoAck: false, consumer: consumer);
+            channel.BasicConsume(queue: requestQueueName, autoAck: false, consumer: consumer);
+        }
 
-            // Wait for the cancellation token to be triggered
-            await Task.Delay(Timeout.Infinite, stoppingToken);
+        private async Task InitializeWebSocketConsumerAsync(IModel channel)
+        {
+            var serverBusQueueName = $"{USERNAME}_websocket_server_bus";
+            channel.QueueDeclare(queue: serverBusQueueName,
+                     durable: false,
+                     exclusive: false,
+                     autoDelete: false,
+                     arguments: null);
+
+            // WebSocket Client
+            var targetUri = new Uri("wss://localhost:7128");
+
+            // Start consuming requests
+            var consumer = new AsyncEventingBasicConsumer(channel);
+            consumer.Received += async (model, ea) =>
+            {
+                try
+                {
+                    var requestID = ea.BasicProperties.MessageId;
+                    var body = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var requestModel = JsonSerializer.Deserialize<WebSocketData>(body);
+
+                    if (!ea.BasicProperties.Headers.TryGetValue("IntUrl", out var internalUrlByteArray))
+                        throw new ApplicationException("Internal url not found");
+                    if (!ea.BasicProperties.Headers.TryGetValue("Host", out var hostByteArray))
+                        throw new ApplicationException("Host not found");
+                    var internalUri = new Uri(Encoding.UTF8.GetString((byte[])internalUrlByteArray));
+                    var host = Encoding.UTF8.GetString((byte[])hostByteArray);
+
+                    var webSocket = await _webSocketService.InitializeWebSocketAsync(channel, host, internalUri);
+                    var arraySegment = new ArraySegment<byte>(requestModel.Payload, 0, requestModel.PayloadCount);
+                    await webSocket.SendAsync(arraySegment,
+                        requestModel.MessageType,
+                        requestModel.EndOfMessage,
+                        CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                }
+
+                channel.BasicAck(ea.DeliveryTag, false);
+            };
+
+            channel.BasicConsume(queue: serverBusQueueName, autoAck: false, consumer: consumer);
+
+            // Initialize publisher
+            var queueName = "websocket_client_bus";
+            var exchangeName = "websocket_bus";
+
+            channel.ExchangeDeclare(exchange: exchangeName,
+                type: "direct",
+                durable: false,
+                autoDelete: false,
+                arguments: null);
+
+            channel.QueueDeclare(queue: queueName,
+                     durable: false,
+                     exclusive: false,
+                     autoDelete: false,
+                     arguments: null);
+
+            channel.QueueBind(queue: queueName,
+                exchange: exchangeName,
+                routingKey: queueName,
+                arguments: null);
         }
 
         private static async Task<HttpResponseModel> CreateAndSendRequestAsync(HttpRequestModel requestModel, Uri internalUri)
