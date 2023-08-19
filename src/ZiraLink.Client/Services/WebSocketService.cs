@@ -41,43 +41,47 @@ namespace ZiraLink.Client.Services
             var task = Task.Run(async () => await InitializeWebSocketReceiverAsync(webSocket, channel, host));
             _webSocketReceiverTasks.TryAdd(host, task);
 
-
             return webSocket;
         }
 
         private async Task InitializeWebSocketReceiverAsync(WebSocket webSocket, IModel channel, string host)
         {
-            var queueName = "websocket_client_bus";
-            var exchangeName = "websocket_bus";
-
-            var buffer = new byte[1024 * 4];
-            do
+            try
             {
-                var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                if (receiveResult.CloseStatus.HasValue)
-                    break;
+                var queueName = "websocket_client_bus";
+                var exchangeName = "websocket_bus";
 
-                var webSocketData = new WebSocketData
+                var buffer = new byte[1024 * 4];
+                do
                 {
-                    Payload = buffer,
-                    PayloadCount = receiveResult.Count,
-                    MessageType = receiveResult.MessageType,
-                    EndOfMessage = receiveResult.EndOfMessage
-                };
+                    var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if (receiveResult.CloseStatus.HasValue)
+                        break;
 
-                var properties = channel.CreateBasicProperties();
-                properties.MessageId = "";
-                var headers = new Dictionary<string, object>();
-                headers.Add("IntUrl", "");
-                headers.Add("Host", host);
-                properties.Headers = headers;
-                var message = JsonSerializer.Serialize(webSocketData);
+                    var webSocketData = new WebSocketData
+                    {
+                        Payload = buffer,
+                        PayloadCount = receiveResult.Count,
+                        MessageType = receiveResult.MessageType,
+                        EndOfMessage = receiveResult.EndOfMessage
+                    };
 
-                channel.BasicPublish(exchange: exchangeName, routingKey: queueName, basicProperties: properties, body: Encoding.UTF8.GetBytes(message));
-            } while (true);
+                    var properties = channel.CreateBasicProperties();
+                    properties.MessageId = "";
+                    var headers = new Dictionary<string, object>();
+                    headers.Add("IntUrl", "");
+                    headers.Add("Host", host);
+                    properties.Headers = headers;
+                    var message = JsonSerializer.Serialize(webSocketData);
 
-            _webSockets.TryRemove(host, out var _);
-            _webSocketReceiverTasks.TryRemove(host, out var _);
+                    channel.BasicPublish(exchange: exchangeName, routingKey: queueName, basicProperties: properties, body: Encoding.UTF8.GetBytes(message));
+                } while (true);
+            }
+            finally
+            {
+                _webSockets.TryRemove(host, out var _);
+                _webSocketReceiverTasks.TryRemove(host, out var _);
+            }
         }
     }
 }
