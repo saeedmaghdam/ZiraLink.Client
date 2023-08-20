@@ -108,8 +108,10 @@ namespace ZiraLink.Client
                 {
                     _logger.LogError(ex.Message);
                 }
-
-                channel.BasicAck(ea.DeliveryTag, false);
+                finally
+                {
+                    channel.BasicAck(ea.DeliveryTag, false);
+                }
             };
 
             channel.BasicConsume(queue: requestQueueName, autoAck: false, consumer: consumer);
@@ -155,8 +157,10 @@ namespace ZiraLink.Client
                 {
                     _logger.LogError(ex.Message);
                 }
-
-                channel.BasicAck(ea.DeliveryTag, false);
+                finally
+                {
+                    channel.BasicAck(ea.DeliveryTag, false);
+                }
             };
 
             channel.BasicConsume(queue: serverBusQueueName, autoAck: false, consumer: consumer);
