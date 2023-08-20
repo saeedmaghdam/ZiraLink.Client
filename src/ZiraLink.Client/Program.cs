@@ -1,7 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
-using System.Security.Claims;
-using System.Text.Json;
 using Duende.Bff.Yarp;
 using IdentityModel;
 using IdentityModel.Client;
@@ -10,6 +8,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using ZiraLink.Client;
 using ZiraLink.Client.Services;
+
+HostsHelper.ConfigureDns();
+CertificateHelper.InstallCertificate();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,6 +111,9 @@ app.UseEndpoints(endpoints =>
     endpoints.MapBffManagementEndpoints();
     endpoints.MapGet("/", async (HttpContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, SignalService signalService) =>
     {
+        if (System.IO.File.Exists("profile"))
+            return "Authorized";
+
         if (!context.User.Identity.IsAuthenticated)
         {
             context.Response.Redirect("/bff/login");

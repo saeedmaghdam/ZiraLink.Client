@@ -12,11 +12,11 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://client.ziralink.com:8001;http://client.ziralink.com:8000",
+      "applicationUrl": "https://client.ziralink.aghdam.nl:8197",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ZIRALINK_CONNECTIONSTRINGS_RABBITMQ": "amqp://user:Pass123$@localhost:5772/",
-        "ZIRALINK_URL_IDS": "https://ids.ziralink.com:5001",
+        "ZIRALINK_CONNECTIONSTRINGS_RABBITMQ": "amqp://USERNAME:PASSWORD@IP_ADDRESS:5672/",
+        "ZIRALINK_URL_IDS": "https://ids.ziralink.aghdam.nl",
         "ASPNETCORE_Kestrel__Certificates__Default__Password": "zira_cert",
         "ASPNETCORE_Kestrel__Certificates__Default__Path": "server.pfx"
       }
