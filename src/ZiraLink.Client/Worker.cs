@@ -13,12 +13,14 @@ namespace ZiraLink.Client
         private readonly ILogger<Worker> _logger;
         private readonly WebSocketService _webSocketService;
         private readonly SignalService _signalService;
+        private readonly IConfiguration _configuration;
 
-        public Worker(ILogger<Worker> logger, WebSocketService webSocketService, SignalService signalService)
+        public Worker(ILogger<Worker> logger, WebSocketService webSocketService, SignalService signalService, IConfiguration configuration)
         {
             _logger = logger;
             _webSocketService = webSocketService;
             _signalService = signalService;
+            _configuration = configuration;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -35,7 +37,7 @@ namespace ZiraLink.Client
                 // Set up RabbitMQ connection and channels
                 var factory = new ConnectionFactory();
                 factory.DispatchConsumersAsync = true;
-                factory.Uri = new Uri(Environment.GetEnvironmentVariable("ZIRALINK_CONNECTIONSTRINGS_RABBITMQ")!);
+                factory.Uri = new Uri(_configuration["ZIRALINK_CONNECTIONSTRINGS_RABBITMQ"]!);
                 var connection = factory.CreateConnection();
                 var channel = connection.CreateModel();
 

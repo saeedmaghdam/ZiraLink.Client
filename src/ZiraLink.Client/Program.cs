@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Reflection;
 using Duende.Bff.Yarp;
 using IdentityModel;
@@ -57,7 +58,7 @@ builder.Services.AddAuthentication(options =>
 
                 options.GetClaimsFromUserInfoEndpoint = true;
 
-                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
+                if (Configuration["ASPNETCORE_ENVIRONMENT"] != "Production")
                 {
                     HttpClientHandler handler = new HttpClientHandler();
                     //handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
@@ -133,6 +134,13 @@ app.UseEndpoints(endpoints =>
 
         var client = new HttpClient();
         var userInfoResponse = await client.GetUserInfoAsync(userInfoRequest);
+
+        if (userInfoResponse.IsError)
+        {
+            context.Response.Redirect("/bff/login");
+            return "";
+        }
+
         var result = await userInfoResponse.HttpResponse.Content.ReadAsStringAsync();
 
         System.IO.File.WriteAllText("profile", result);
