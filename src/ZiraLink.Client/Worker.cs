@@ -126,9 +126,6 @@ namespace ZiraLink.Client
                      autoDelete: false,
                      arguments: null);
 
-            // WebSocket Client
-            var targetUri = new Uri("wss://localhost:7128");
-
             // Start consuming requests
             var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (model, ea) =>

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
 using System.Collections.Concurrent;
+using System.Net;
 
 namespace ZiraLink.Client.Services
 {
@@ -17,6 +18,7 @@ namespace ZiraLink.Client.Services
                 return _webSockets[host];
 
             var webSocket = new ClientWebSocket();
+            webSocket.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 
             var webSocketUri = internalUri;
             var webSocketUriBuilder = default(UriBuilder);
