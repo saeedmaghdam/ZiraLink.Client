@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 using ZiraLink.Client;
 using ZiraLink.Client.Services;
 
-HostsHelper.ConfigureDns();
-CertificateHelper.InstallCertificate();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,9 +78,17 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<SignalService>();
+builder.Services.AddSingleton<CertificateHelper>();
+builder.Services.AddSingleton<HostsHelper>();
 builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
+
+var hostHelper = app.Services.GetRequiredService<HostsHelper>();
+hostHelper.ConfigureDns();
+
+var certificateHelper = app.Services.GetRequiredService<CertificateHelper>();
+certificateHelper.InstallCertificate();
 
 app.Use((context, next) =>
 {

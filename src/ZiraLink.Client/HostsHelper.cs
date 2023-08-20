@@ -1,8 +1,8 @@
 ﻿namespace ZiraLink.Client
 {
-    public static class HostsHelper
+    public class HostsHelper
     {
-        public static void ConfigureDns()
+        public void ConfigureDns()
         {
             string hostFile = "";
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)

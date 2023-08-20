@@ -3,17 +3,23 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace ZiraLink.Client
 {
-    public static class CertificateHelper
+    public class CertificateHelper
     {
-        private const string PFX_FILE_PATH = "server.pfx";
-        private const string PFX_PASSWORD = "zira_cert";
+        private readonly string _pfxPath;
+        private readonly string _pfxPassword;
 
-        public static void InstallCertificate()
+        public CertificateHelper(IConfiguration configuration)
+        {
+            _pfxPath = configuration["ASPNETCORE_Kestrel__Certificates__Default__Path"];
+            _pfxPassword = configuration["ASPNETCORE_Kestrel__Certificates__Default__Password"];
+        }
+
+        public void InstallCertificate()
         {
             try
             {
                 X509Certificate2Collection certificates = new X509Certificate2Collection();
-                certificates.Import(PFX_FILE_PATH, PFX_PASSWORD, X509KeyStorageFlags.Exportable);
+                certificates.Import(_pfxPath, _pfxPassword, X509KeyStorageFlags.Exportable);
 
                 if (Environment.OSVersion.Platform == PlatformID.Win32NT)
                 {
