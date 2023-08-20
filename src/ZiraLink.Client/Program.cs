@@ -1,5 +1,4 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Reflection;
 using Duende.Bff.Yarp;
 using IdentityModel;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.HttpOverrides;
 using ZiraLink.Client;
 using ZiraLink.Client.Services;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 var pathToExe = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
@@ -18,7 +16,7 @@ Directory.SetCurrentDirectory(pathToExe!);
 
 IConfiguration Configuration = new ConfigurationBuilder()
     .SetBasePath(pathToExe)
-    .AddJsonFile("appsettings.json", false, true)
+    .Add(new CustomConfigurationSource())
     .AddEnvironmentVariables()
     .Build();
 
@@ -77,6 +75,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IConfiguration>(Configuration);
 builder.Services.AddSingleton<SignalService>();
 builder.Services.AddSingleton<CertificateHelper>();
 builder.Services.AddSingleton<HostsHelper>();
