@@ -4,6 +4,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
 using ZiraLink.Client.Services;
+using System.Net;
 
 namespace ZiraLink.Client
 {
@@ -211,6 +212,7 @@ namespace ZiraLink.Client
             var handler = new HttpClientHandler();
             handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12; // Adjust the SSL/TLS protocol version as needed
             handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; };
+            handler.AllowAutoRedirect = false;
 
             using var httpClient = new HttpClient(handler);
 
@@ -218,6 +220,19 @@ namespace ZiraLink.Client
             using (var responseMessage = await httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None))
             {
                 httpResponseModel.HttpStatusCode = responseMessage.StatusCode;
+
+                var isRedirected = responseMessage.StatusCode == HttpStatusCode.Redirect || responseMessage.StatusCode == HttpStatusCode.MovedPermanently;
+                if (isRedirected)
+                {
+                    var redirectUrl = responseMessage.Headers.Location!.ToString();
+                    httpResponseModel.IsRedirected = true;
+
+                    var requestUri = new Uri(requestModel.RequestUrl);
+                    var newUri = new Uri($"{requestUri.Scheme}://{requestUri.Authority}");
+                    httpResponseModel.RedirectUrl = new Uri(newUri, redirectUrl).ToString();
+
+                    return httpResponseModel;
+                }
 
                 var headers = new List<KeyValuePair<string, IEnumerable<string>>>();
                 foreach (var header in responseMessage.Content.Headers)
@@ -229,7 +244,6 @@ namespace ZiraLink.Client
                         headers.Add(new KeyValuePair<string, IEnumerable<string>>(header.Key, header.Value));
                 }
 
-
                 headers = headers.Where(x => x.Key != "transfer-encoding").ToList();
 
                 httpResponseModel.Headers = headers;
@@ -239,7 +253,9 @@ namespace ZiraLink.Client
                 if (IsContentOfType(responseMessage, "text/html") || IsContentOfType(responseMessage, "text/javascript"))
                 {
                     var stringContent = Encoding.UTF8.GetString(content);
-                    var newContent = ReplaceUrls(stringContent, internalUri, new Uri(requestModel.RequestUrl));
+                    var requestUri = new Uri(requestModel.RequestUrl);
+                    var newUri = new Uri($"{requestUri.Scheme}://{requestUri.Authority}");
+                    var newContent = ReplaceUrls(stringContent, internalUri, newUri);
                     httpResponseModel.StringContent = newContent;
                 }
 

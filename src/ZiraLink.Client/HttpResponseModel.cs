@@ -10,5 +10,7 @@ namespace ZiraLink.Client
         public byte[] Bytes { get; set; }
         public HttpStatusCode HttpStatusCode { get; set; }
         public bool IsSuccessStatusCode { get; set; }
+        public bool IsRedirected { get; set; }
+        public string RedirectUrl { get; set; }
     }
 }
