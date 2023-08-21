@@ -5,6 +5,8 @@ using RabbitMQ.Client.Events;
 using System.Text.Json;
 using ZiraLink.Client.Services;
 using System.Net;
+using Microsoft.Net.Http.Headers;
+using System.Net.Http.Headers;
 
 namespace ZiraLink.Client
 {
@@ -199,8 +201,29 @@ namespace ZiraLink.Client
                 httpRequestMessage.Content = streamContent;
             }
 
+            var contentHeaders = new string[] { "Accept-Ranges", "Age", "Content-Disposition", "Content-Encoding", "Content-Language", "Content-Length", "Content-Location", "Content-Range", "Content-Type", "Expires", "Last-Modified", "Pragma", "Trailer", "Transfer-Encoding", "Vary", "Via", "Warning" };
+
             foreach (var header in requestModel.Headers)
+            {
+                if (header.Key.ToLower() == "Host".ToLower())
+                {
+                    httpRequestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, internalUri.Authority.ToString());
+                    continue;
+                }
+
+                if (header.Key.ToLower() == "Referer".ToLower())
+                {
+                    var baseUri = new Uri($"{internalUri.Scheme}://{internalUri.Authority}");
+                    var refererUri = new Uri(header.Value.First());
+                    httpRequestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, new Uri(baseUri, refererUri.PathAndQuery).ToString());
+                    continue;
+                }
+
                 httpRequestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+
+                if (!contentHeaders.Contains(header.Key) && !header.Key.StartsWith(":") && !header.Key.StartsWith("Accept-"))
+                    httpRequestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+            }
 
             var originalUri = new Uri(requestModel.RequestUrl);
             var uri = new Uri(internalUri, originalUri.PathAndQuery);
@@ -263,6 +286,24 @@ namespace ZiraLink.Client
             }
 
             return httpResponseModel;
+        }
+
+        private static void AddHeaderToRequest(HttpRequestMessage request, string headerName, IEnumerable<string> headerValue)
+        {
+            // Check if the header is a content-related header
+            if (IsContentHeader(headerName))
+            {
+                request.Content?.Headers.TryAddWithoutValidation(headerName, headerValue);
+            }
+            else
+            {
+                request.Headers.TryAddWithoutValidation(headerName, headerValue);
+            }
+        }
+
+        private static bool IsContentHeader(string headerName)
+        {
+            return headerName.ToLower().StartsWith("content-");
         }
 
         private static bool IsContentOfType(HttpResponseMessage responseMessage, string type)
