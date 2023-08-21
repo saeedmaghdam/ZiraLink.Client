@@ -11,7 +11,7 @@
     "ZiraLink.Client": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,
       "applicationUrl": "https://client.ziralink.local:8197",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
