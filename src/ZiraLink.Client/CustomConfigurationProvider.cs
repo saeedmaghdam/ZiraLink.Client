@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using Duende.Bff;
 using Microsoft.Extensions.Configuration.Json;
 
 namespace ZiraLink.Client
@@ -17,13 +16,16 @@ namespace ZiraLink.Client
                 .AddJsonFile("appsettings.json", false, true)
                 .AddEnvironmentVariables()
                 .Build();
+            var environment = allConfiguration["ASPNETCORE_ENVIRONMENT"];
+            if (string.IsNullOrEmpty(environment))
+                environment = "Production";
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(pathToExe)
-                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{environment}.json", false, true)
                 .Build();
 
-            var isProduction = allConfiguration["ASPNETCORE_ENVIRONMENT"] == "Production";
+            var isProduction = environment == "Production";
             if (isProduction && string.IsNullOrEmpty(ENCRYPTION_KEY))
                 throw new ApplicationException("Encryption key is empty");
 

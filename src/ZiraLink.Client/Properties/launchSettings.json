@@ -14,11 +14,7 @@
       "launchBrowser": false,
       "applicationUrl": "https://client.ziralink.local:8197",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ZIRALINK_CONNECTIONSTRINGS_RABBITMQ": "amqp://user:Pass123$@localhost:5772/",
-        "ZIRALINK_URL_IDS": "https://ids.ziralink.local:5001",
-        "ASPNETCORE_Kestrel__Certificates__Default__Password": "zira_cert",
-        "ASPNETCORE_Kestrel__Certificates__Default__Path": "server.pfx"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
     "IIS Express": {
