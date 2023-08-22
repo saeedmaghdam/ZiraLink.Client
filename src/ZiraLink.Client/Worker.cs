@@ -288,24 +288,6 @@ namespace ZiraLink.Client
             return httpResponseModel;
         }
 
-        private static void AddHeaderToRequest(HttpRequestMessage request, string headerName, IEnumerable<string> headerValue)
-        {
-            // Check if the header is a content-related header
-            if (IsContentHeader(headerName))
-            {
-                request.Content?.Headers.TryAddWithoutValidation(headerName, headerValue);
-            }
-            else
-            {
-                request.Headers.TryAddWithoutValidation(headerName, headerValue);
-            }
-        }
-
-        private static bool IsContentHeader(string headerName)
-        {
-            return headerName.ToLower().StartsWith("content-");
-        }
-
         private static bool IsContentOfType(HttpResponseMessage responseMessage, string type)
         {
             var result = false;
