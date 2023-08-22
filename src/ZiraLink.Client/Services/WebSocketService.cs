@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
 using System.Collections.Concurrent;
-using System.Net;
+using ZiraLink.Client.Models;
 
 namespace ZiraLink.Client.Services
 {

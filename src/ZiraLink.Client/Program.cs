@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using ZiraLink.Client;
+using ZiraLink.Client.Helpers;
+using ZiraLink.Client.Application;
 using ZiraLink.Client.Services;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace ZiraLink.Client
+namespace ZiraLink.Client.Models
 {
     public class HttpResponseModel
     {

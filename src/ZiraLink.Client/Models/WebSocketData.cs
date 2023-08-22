@@ -1,6 +1,6 @@
 ﻿using System.Net.WebSockets;
 
-namespace ZiraLink.Client
+namespace ZiraLink.Client.Models
 {
     public class WebSocketData
     {

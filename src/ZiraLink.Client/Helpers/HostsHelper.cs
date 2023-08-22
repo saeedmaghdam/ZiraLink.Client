@@ -1,4 +1,4 @@
-﻿namespace ZiraLink.Client
+﻿namespace ZiraLink.Client.Helpers
 {
     public class HostsHelper
     {

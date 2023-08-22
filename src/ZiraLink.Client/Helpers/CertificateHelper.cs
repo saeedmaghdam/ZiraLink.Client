@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 
-namespace ZiraLink.Client
+namespace ZiraLink.Client.Helpers
 {
     public class CertificateHelper
     {

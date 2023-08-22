@@ -1,7 +1,8 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.Configuration.Json;
+using ZiraLink.Client.Helpers;
 
-namespace ZiraLink.Client
+namespace ZiraLink.Client.Application
 {
     public class CustomConfigurationProvider : ConfigurationProvider, IConfigurationProvider
     {

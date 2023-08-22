@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ZiraLink.Client
+namespace ZiraLink.Client.Models
 {
     public class ProfileViewModel
     {

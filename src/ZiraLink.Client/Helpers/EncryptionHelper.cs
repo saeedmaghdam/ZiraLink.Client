@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace ZiraLink.Client
+namespace ZiraLink.Client.Helpers
 {
     public static class EncryptionHelper
     {

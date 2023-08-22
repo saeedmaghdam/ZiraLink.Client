@@ -5,6 +5,8 @@ using RabbitMQ.Client.Events;
 using System.Text.Json;
 using ZiraLink.Client.Services;
 using System.Net;
+using ZiraLink.Client.Models;
+using ZiraLink.Client.Application;
 
 namespace ZiraLink.Client
 {
