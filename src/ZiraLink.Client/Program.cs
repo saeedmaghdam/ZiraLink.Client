@@ -81,7 +81,10 @@ builder.Services.AddSingleton<ISignalService, SignalService>();
 builder.Services.AddSingleton<ICertificateHelper, CertificateHelper>();
 builder.Services.AddSingleton<IHostsHelper, HostsHelper>();
 builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
+builder.Services.AddSingleton<IWebSocketFactory, WebSocketFactory>();
 builder.Services.AddHostedService<Worker>();
+
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

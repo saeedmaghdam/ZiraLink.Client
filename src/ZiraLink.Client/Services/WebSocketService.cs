@@ -2,24 +2,31 @@
 using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
-using System.Collections.Concurrent;
 using ZiraLink.Client.Models;
 using ZiraLink.Client.Framework.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiraLink.Client.Services
 {
     public class WebSocketService: IWebSocketService
     {
-        private ConcurrentDictionary<string, WebSocket> _webSockets = new ConcurrentDictionary<string, WebSocket>();
-        private ConcurrentDictionary<string, Task> _webSocketReceiverTasks = new ConcurrentDictionary<string, Task>();
+        private readonly IWebSocketFactory _webSocketFactory;
+        private readonly IMemoryCache _webSockets;
+        private readonly IMemoryCache _webSocketReceiverTasks;
+
+        public WebSocketService(IWebSocketFactory webSocketFactory, IMemoryCache webSockets, IMemoryCache webSocketReceiverTasks)
+        {
+            _webSocketFactory = webSocketFactory;
+            _webSockets = webSockets;
+            _webSocketReceiverTasks = webSocketReceiverTasks;
+        }
 
         public async Task<WebSocket> InitializeWebSocketAsync(IModel channel, string host, Uri internalUri)
         {
-            if (_webSockets.ContainsKey(host))
-                return _webSockets[host];
+            if (_webSockets.TryGetValue(host, out ClientWebSocket webSocket))
+                return webSocket;
 
-            var webSocket = new ClientWebSocket();
-            webSocket.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
+            webSocket = _webSocketFactory.CreateClientWebSocket();
 
             var webSocketUri = internalUri;
             var webSocketUriBuilder = default(UriBuilder);
@@ -39,10 +46,10 @@ namespace ZiraLink.Client.Services
             }
 
             await webSocket.ConnectAsync(webSocketUriBuilder.Uri, default);
-            _webSockets.TryAdd(host, webSocket);
+            _webSockets.Set(host, webSocket);
 
             var task = Task.Run(async () => await InitializeWebSocketReceiverAsync(webSocket, channel, host));
-            _webSocketReceiverTasks.TryAdd(host, task);
+            _webSocketReceiverTasks.Set(host, task);
 
             return webSocket;
         }
@@ -82,8 +89,8 @@ namespace ZiraLink.Client.Services
             }
             finally
             {
-                _webSockets.TryRemove(host, out var _);
-                _webSocketReceiverTasks.TryRemove(host, out var _);
+                _webSockets.Remove(host);
+                _webSocketReceiverTasks.Remove(host);
             }
         }
     }
