@@ -13,15 +13,17 @@ namespace ZiraLink.Client.Services
         private readonly IWebSocketFactory _webSocketFactory;
         private readonly IMemoryCache _webSockets;
         private readonly IMemoryCache _webSocketReceiverTasks;
+        private readonly IModel _channel;
 
-        public WebSocketService(IWebSocketFactory webSocketFactory, IMemoryCache webSockets, IMemoryCache webSocketReceiverTasks)
+        public WebSocketService(IWebSocketFactory webSocketFactory, IMemoryCache webSockets, IMemoryCache webSocketReceiverTasks, IModel channel)
         {
             _webSocketFactory = webSocketFactory;
             _webSockets = webSockets;
             _webSocketReceiverTasks = webSocketReceiverTasks;
+            _channel = channel;
         }
 
-        public async Task<WebSocket> InitializeWebSocketAsync(IModel channel, string host, Uri internalUri)
+        public async Task<WebSocket> InitializeWebSocketAsync(string host, Uri internalUri)
         {
             if (_webSockets.TryGetValue(host, out ClientWebSocket webSocket))
                 return webSocket;
@@ -48,13 +50,13 @@ namespace ZiraLink.Client.Services
             await webSocket.ConnectAsync(webSocketUriBuilder.Uri, default);
             _webSockets.Set(host, webSocket);
 
-            var task = Task.Run(async () => await InitializeWebSocketReceiverAsync(webSocket, channel, host));
+            var task = Task.Run(async () => await InitializeWebSocketReceiverAsync(webSocket, host));
             _webSocketReceiverTasks.Set(host, task);
 
             return webSocket;
         }
 
-        private async Task InitializeWebSocketReceiverAsync(WebSocket webSocket, IModel channel, string host)
+        private async Task InitializeWebSocketReceiverAsync(WebSocket webSocket, string host)
         {
             try
             {
@@ -76,7 +78,7 @@ namespace ZiraLink.Client.Services
                         EndOfMessage = receiveResult.EndOfMessage
                     };
 
-                    var properties = channel.CreateBasicProperties();
+                    var properties = _channel.CreateBasicProperties();
                     properties.MessageId = "";
                     var headers = new Dictionary<string, object>();
                     headers.Add("IntUrl", "");
@@ -84,7 +86,7 @@ namespace ZiraLink.Client.Services
                     properties.Headers = headers;
                     var message = JsonSerializer.Serialize(webSocketData);
 
-                    channel.BasicPublish(exchange: exchangeName, routingKey: queueName, basicProperties: properties, body: Encoding.UTF8.GetBytes(message));
+                    _channel.BasicPublish(exchange: exchangeName, routingKey: queueName, basicProperties: properties, body: Encoding.UTF8.GetBytes(message));
                 } while (true);
             }
             finally

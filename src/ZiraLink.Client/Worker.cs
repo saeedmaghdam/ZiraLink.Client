@@ -16,14 +16,14 @@ namespace ZiraLink.Client
         private readonly ILogger<Worker> _logger;
         private readonly IWebSocketService _webSocketService;
         private readonly ISignalService _signalService;
-        private readonly IConfiguration _configuration;
+        private readonly IModel _channel;
 
-        public Worker(ILogger<Worker> logger, IWebSocketService webSocketService, ISignalService signalService, IConfiguration configuration)
+        public Worker(ILogger<Worker> logger, IWebSocketService webSocketService, ISignalService signalService, IModel channel)
         {
             _logger = logger;
             _webSocketService = webSocketService;
             _signalService = signalService;
-            _configuration = configuration;
+            _channel = channel;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,14 +38,8 @@ namespace ZiraLink.Client
                 _username = profile.Username;
 
                 // Set up RabbitMQ connection and channels
-                var factory = new ConnectionFactory();
-                factory.DispatchConsumersAsync = true;
-                factory.Uri = new Uri(_configuration["ZIRALINK_CONNECTIONSTRINGS_RABBITMQ"]!);
-                var connection = factory.CreateConnection();
-                var channel = connection.CreateModel();
-
-                await InitializeHttpRequestConsumerAsync(channel);
-                await InitializeWebSocketConsumerAsync(channel);
+                await InitializeHttpRequestConsumerAsync(_channel);
+                await InitializeWebSocketConsumerAsync(_channel);
 
                 // Wait for the cancellation token to be triggered
                 await Task.Delay(Timeout.Infinite, stoppingToken);
@@ -146,7 +140,7 @@ namespace ZiraLink.Client
                     var internalUri = new Uri(Encoding.UTF8.GetString((byte[])internalUrlByteArray));
                     var host = Encoding.UTF8.GetString((byte[])hostByteArray);
 
-                    var webSocket = await _webSocketService.InitializeWebSocketAsync(channel, host, internalUri);
+                    var webSocket = await _webSocketService.InitializeWebSocketAsync(host, internalUri);
                     var arraySegment = new ArraySegment<byte>(requestModel.Payload, 0, requestModel.PayloadCount);
                     await webSocket.SendAsync(arraySegment,
                         requestModel.MessageType,

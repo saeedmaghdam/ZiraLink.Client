@@ -13,6 +13,7 @@ using ZiraLink.Client.Services;
 using ZiraLink.Client.Framework.Services;
 using ZiraLink.Client.Framework.Application;
 using ZiraLink.Client.Framework.Helpers;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +84,17 @@ builder.Services.AddSingleton<IHostsHelper, HostsHelper>();
 builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
 builder.Services.AddSingleton<IWebSocketFactory, WebSocketFactory>();
 builder.Services.AddHostedService<Worker>();
+
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var factory = new ConnectionFactory();
+    factory.DispatchConsumersAsync = true;
+    factory.Uri = new Uri(Configuration["ZIRALINK_CONNECTIONSTRINGS_RABBITMQ"]!);
+    var connection = factory.CreateConnection();
+    var channel = connection.CreateModel();
+
+    return channel;
+});
 
 builder.Services.AddMemoryCache();
 

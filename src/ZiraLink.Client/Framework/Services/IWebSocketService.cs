@@ -5,6 +5,6 @@ namespace ZiraLink.Client.Framework.Services
 {
     public interface IWebSocketService
     {
-        Task<WebSocket> InitializeWebSocketAsync(IModel channel, string host, Uri internalUri);
+        Task<WebSocket> InitializeWebSocketAsync(string host, Uri internalUri);
     }
 }
