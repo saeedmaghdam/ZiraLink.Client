@@ -1,6 +1,8 @@
-﻿namespace ZiraLink.Client.Helpers
+﻿using ZiraLink.Client.Framework.Helpers;
+
+namespace ZiraLink.Client.Helpers
 {
-    public class HostsHelper
+    public class HostsHelper : IHostsHelper
     {
         public void ConfigureDns()
         {

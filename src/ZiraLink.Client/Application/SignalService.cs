@@ -1,6 +1,8 @@
-﻿namespace ZiraLink.Client.Application
+﻿using ZiraLink.Client.Framework.Application;
+
+namespace ZiraLink.Client.Application
 {
-    public class SignalService
+    public class SignalService : ISignalService
     {
         private ManualResetEvent mre = new ManualResetEvent(false);
 

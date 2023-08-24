@@ -4,10 +4,11 @@ using System.Text;
 using RabbitMQ.Client;
 using System.Collections.Concurrent;
 using ZiraLink.Client.Models;
+using ZiraLink.Client.Framework.Services;
 
 namespace ZiraLink.Client.Services
 {
-    public class WebSocketService
+    public class WebSocketService: IWebSocketService
     {
         private ConcurrentDictionary<string, WebSocket> _webSockets = new ConcurrentDictionary<string, WebSocket>();
         private ConcurrentDictionary<string, Task> _webSocketReceiverTasks = new ConcurrentDictionary<string, Task>();

@@ -10,6 +10,9 @@ using ZiraLink.Client;
 using ZiraLink.Client.Helpers;
 using ZiraLink.Client.Application;
 using ZiraLink.Client.Services;
+using ZiraLink.Client.Framework.Services;
+using ZiraLink.Client.Framework.Application;
+using ZiraLink.Client.Framework.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +26,6 @@ IConfiguration Configuration = new ConfigurationBuilder()
     .Build();
 
 // Add services to the container.
-builder.Services.AddSingleton<WebSocketService>();
 
 builder.Services.AddAuthorization();
 builder.Services
@@ -32,9 +34,6 @@ builder.Services
 JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 builder.Services.AddAuthentication(options =>
 {
-    //options.DefaultScheme = "Cookies";
-    //options.DefaultChallengeScheme = "oidc";
-    //options.DefaultSignOutScheme = "oidc";
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = "oidc";
     options.DefaultSignOutScheme = "oidc";
@@ -78,17 +77,18 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IConfiguration>(Configuration);
-builder.Services.AddSingleton<SignalService>();
-builder.Services.AddSingleton<CertificateHelper>();
-builder.Services.AddSingleton<HostsHelper>();
+builder.Services.AddSingleton<ISignalService, SignalService>();
+builder.Services.AddSingleton<ICertificateHelper, CertificateHelper>();
+builder.Services.AddSingleton<IHostsHelper, HostsHelper>();
+builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
 builder.Services.AddHostedService<Worker>();
 
 var app = builder.Build();
 
-var hostHelper = app.Services.GetRequiredService<HostsHelper>();
+var hostHelper = app.Services.GetRequiredService<IHostsHelper>();
 hostHelper.ConfigureDns();
 
-var certificateHelper = app.Services.GetRequiredService<CertificateHelper>();
+var certificateHelper = app.Services.GetRequiredService<ICertificateHelper>();
 certificateHelper.InstallCertificate();
 
 app.Use((context, next) =>
@@ -117,7 +117,7 @@ app.UseBff();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapBffManagementEndpoints();
-    endpoints.MapGet("/", async (HttpContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, SignalService signalService) =>
+    endpoints.MapGet("/", async (HttpContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ISignalService signalService) =>
     {
         if (System.IO.File.Exists("profile"))
             return "Authorized";

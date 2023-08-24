@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
+using ZiraLink.Client.Framework.Helpers;
 
 namespace ZiraLink.Client.Helpers
 {
-    public class CertificateHelper
+    public class CertificateHelper : ICertificateHelper
     {
         private readonly string _pfxPath;
         private readonly string _pfxPassword;

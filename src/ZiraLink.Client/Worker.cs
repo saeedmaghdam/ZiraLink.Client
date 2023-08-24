@@ -3,10 +3,11 @@ using System.Text;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text.Json;
-using ZiraLink.Client.Services;
 using System.Net;
 using ZiraLink.Client.Models;
 using ZiraLink.Client.Application;
+using ZiraLink.Client.Framework.Services;
+using ZiraLink.Client.Framework.Application;
 
 namespace ZiraLink.Client
 {
@@ -14,11 +15,11 @@ namespace ZiraLink.Client
     {
         private string _username;
         private readonly ILogger<Worker> _logger;
-        private readonly WebSocketService _webSocketService;
-        private readonly SignalService _signalService;
+        private readonly IWebSocketService _webSocketService;
+        private readonly ISignalService _signalService;
         private readonly IConfiguration _configuration;
 
-        public Worker(ILogger<Worker> logger, WebSocketService webSocketService, SignalService signalService, IConfiguration configuration)
+        public Worker(ILogger<Worker> logger, IWebSocketService webSocketService, ISignalService signalService, IConfiguration configuration)
         {
             _logger = logger;
             _webSocketService = webSocketService;
