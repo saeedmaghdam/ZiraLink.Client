@@ -11,21 +11,19 @@ namespace ZiraLink.Client.Services
     public class WebSocketService: IWebSocketService
     {
         private readonly IWebSocketFactory _webSocketFactory;
-        private readonly IMemoryCache _webSockets;
-        private readonly IMemoryCache _webSocketReceiverTasks;
+        private readonly IMemoryCache _memoryCache;
         private readonly IModel _channel;
 
-        public WebSocketService(IWebSocketFactory webSocketFactory, IMemoryCache webSockets, IMemoryCache webSocketReceiverTasks, IModel channel)
+        public WebSocketService(IWebSocketFactory webSocketFactory, IMemoryCache memoryCache, IModel channel)
         {
             _webSocketFactory = webSocketFactory;
-            _webSockets = webSockets;
-            _webSocketReceiverTasks = webSocketReceiverTasks;
+            _memoryCache = memoryCache;
             _channel = channel;
         }
 
-        public async Task<WebSocket> InitializeWebSocketAsync(string host, Uri internalUri)
+        public async Task<ClientWebSocket> InitializeWebSocketAsync(string host, Uri internalUri)
         {
-            if (_webSockets.TryGetValue(host, out ClientWebSocket webSocket))
+            if (_memoryCache.TryGetValue(host, out ClientWebSocket webSocket))
                 return webSocket;
 
             webSocket = _webSocketFactory.CreateClientWebSocket();
@@ -48,10 +46,10 @@ namespace ZiraLink.Client.Services
             }
 
             await webSocket.ConnectAsync(webSocketUriBuilder.Uri, default);
-            _webSockets.Set(host, webSocket);
+            _memoryCache.Set(host, webSocket);
 
             var task = Task.Run(async () => await InitializeWebSocketReceiverAsync(webSocket, host));
-            _webSocketReceiverTasks.Set(host, task);
+            _memoryCache.Set($"task_{host}", task);
 
             return webSocket;
         }
@@ -91,8 +89,8 @@ namespace ZiraLink.Client.Services
             }
             finally
             {
-                _webSockets.Remove(host);
-                _webSocketReceiverTasks.Remove(host);
+                _memoryCache.Remove(host);
+                _memoryCache.Remove($"task_{host}");
             }
         }
     }
