@@ -63,8 +63,6 @@ namespace ZiraLink.Client.Services
                 }
             };
 
-            _channel.BasicConsume(queue: serverBusQueueName, autoAck: false, consumer: consumer);
-
             // Initialize publisher
             var queueName = "websocket_client_bus";
             var exchangeName = "websocket_bus";
@@ -72,7 +70,7 @@ namespace ZiraLink.Client.Services
             _channel.ExchangeDeclare(exchange: exchangeName,
                 type: "direct",
                 durable: false,
-            autoDelete: false,
+                autoDelete: false,
                 arguments: null);
 
             _channel.QueueDeclare(queue: queueName,
@@ -85,6 +83,9 @@ namespace ZiraLink.Client.Services
                 exchange: exchangeName,
                 routingKey: queueName,
                 arguments: null);
+
+            // Start consumer
+            _channel.BasicConsume(queue: serverBusQueueName, autoAck: false, consumer: consumer);
         }
     }
 }
