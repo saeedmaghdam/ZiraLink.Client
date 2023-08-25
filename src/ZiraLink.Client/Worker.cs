@@ -7,20 +7,18 @@ namespace ZiraLink.Client
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
         private readonly ISignalService _signalService;
         private readonly IHttpRequestHandlerService _httpRequestHandlerService;
         private readonly IWebSocketHandlerService _webSocketHandlerService;
 
-        public Worker(ILogger<Worker> logger, ISignalService signalService, IHttpRequestHandlerService httpRequestHandlerService, IWebSocketHandlerService webSocketHandlerService)
+        public Worker(ISignalService signalService, IHttpRequestHandlerService httpRequestHandlerService, IWebSocketHandlerService webSocketHandlerService)
         {
-            _logger = logger;
             _signalService = signalService;
             _httpRequestHandlerService = httpRequestHandlerService;
             _webSocketHandlerService = webSocketHandlerService;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var _ = Task.Run(async () =>
             {
@@ -37,6 +35,8 @@ namespace ZiraLink.Client
                 // Wait for the cancellation token to be triggered
                 await Task.Delay(Timeout.Infinite, stoppingToken);
             });
+
+            return Task.CompletedTask;
         }
     }
 }
