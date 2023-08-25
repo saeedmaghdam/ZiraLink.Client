@@ -4,6 +4,6 @@ namespace ZiraLink.Client.Framework.Services
 {
     public interface IWebSocketFactory
     {
-        WebsocketAdapter CreateClientWebSocket();
+        IWebSocket CreateClientWebSocket();
     }
 }

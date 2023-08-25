@@ -1,8 +1,9 @@
 ﻿using System.Net.WebSockets;
+using ZiraLink.Client.Framework.Services;
 
 namespace ZiraLink.Client.Services
 {
-    public class WebsocketAdapter
+    public class WebsocketAdapter : IWebSocket
     {
         private readonly ClientWebSocket _websocket;
 

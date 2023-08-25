@@ -20,9 +20,9 @@ namespace ZiraLink.Client.Services
             _channel = channel;
         }
 
-        public async Task<WebsocketAdapter> InitializeWebSocketAsync(string host, Uri internalUri)
+        public async Task<IWebSocket> InitializeWebSocketAsync(string host, Uri internalUri)
         {
-            if (_memoryCache.TryGetValue(host, out WebsocketAdapter webSocket))
+            if (_memoryCache.TryGetValue(host, out IWebSocket webSocket))
                 return webSocket;
 
             webSocket = _webSocketFactory.CreateClientWebSocket();
@@ -53,7 +53,7 @@ namespace ZiraLink.Client.Services
             return webSocket;
         }
 
-        private async Task InitializeWebSocketReceiverAsync(WebsocketAdapter webSocket, string host)
+        private async Task InitializeWebSocketReceiverAsync(IWebSocket webSocket, string host)
         {
             try
             {
