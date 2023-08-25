@@ -31,8 +31,8 @@ namespace ZiraLink.Client
                 var profile = JsonSerializer.Deserialize<ProfileViewModel>(content);
 
                 // Set up RabbitMQ connection and channels
-                await _httpRequestHandlerService.InitializeHttpRequestConsumerAsync(profile!.Username);
-                await _webSocketHandlerService.InitializeWebSocketConsumerAsync(profile!.Username);
+                _httpRequestHandlerService.InitializeHttpRequestConsumer(profile!.Username);
+                _webSocketHandlerService.InitializeWebSocketConsumer(profile!.Username);
 
                 // Wait for the cancellation token to be triggered
                 await Task.Delay(Timeout.Infinite, stoppingToken);

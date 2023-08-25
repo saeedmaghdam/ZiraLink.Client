@@ -21,7 +21,7 @@ namespace ZiraLink.Client.Services
             _httpHelper = httpHelper;
         }
 
-        public async Task InitializeHttpRequestConsumerAsync(string username)
+        public void InitializeHttpRequestConsumer(string username)
         {
             var responseExchangeName = "response";
             var responseQueueName = "response_bus";

@@ -2,6 +2,6 @@
 {
     public interface IHttpRequestHandlerService
     {
-        Task InitializeHttpRequestConsumerAsync(string username);
+        void InitializeHttpRequestConsumer(string username);
     }
 }

@@ -20,7 +20,7 @@ namespace ZiraLink.Client.Services
             _webSocketService = webSocketService;
         }
 
-        public async Task InitializeWebSocketConsumerAsync(string username)
+        public void InitializeWebSocketConsumer(string username)
         {
             var serverBusQueueName = $"{username}_websocket_server_bus";
             _channel.QueueDeclare(queue: serverBusQueueName,

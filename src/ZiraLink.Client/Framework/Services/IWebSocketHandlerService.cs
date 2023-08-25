@@ -2,6 +2,6 @@
 {
     public interface IWebSocketHandlerService
     {
-        Task InitializeWebSocketConsumerAsync(string username);
+        void InitializeWebSocketConsumer(string username);
     }
 }
