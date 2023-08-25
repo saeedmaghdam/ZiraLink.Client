@@ -1,9 +1,9 @@
-﻿using System.Net.WebSockets;
+﻿using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client.Framework.Services
 {
     public interface IWebSocketService
     {
-        Task<ClientWebSocket> InitializeWebSocketAsync(string host, Uri internalUri);
+        Task<WebsocketAdapter> InitializeWebSocketAsync(string host, Uri internalUri);
     }
 }

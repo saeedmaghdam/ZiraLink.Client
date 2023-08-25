@@ -25,7 +25,8 @@ namespace ZiraLink.Client.UnitTests
 
             var host = "aghdam.nl";
 
-            var webSocket = new ClientWebSocket();
+            var clientWebSocket = new ClientWebSocket();
+            var webSocket = new WebsocketAdapter(clientWebSocket);
             memoryCache.Set(host, webSocket);
 
             var webSocketService = new WebSocketService(webSocketFactoryMock.Object, memoryCache!, channelMock.Object);

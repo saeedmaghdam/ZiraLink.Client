@@ -4,7 +4,6 @@ using RabbitMQ.Client;
 using ZiraLink.Client.Models;
 using ZiraLink.Client.Framework.Services;
 using Microsoft.Extensions.Caching.Memory;
-using System.Net.WebSockets;
 
 namespace ZiraLink.Client.Services
 {
@@ -21,9 +20,9 @@ namespace ZiraLink.Client.Services
             _channel = channel;
         }
 
-        public async Task<ClientWebSocket> InitializeWebSocketAsync(string host, Uri internalUri)
+        public async Task<WebsocketAdapter> InitializeWebSocketAsync(string host, Uri internalUri)
         {
-            if (_memoryCache.TryGetValue(host, out ClientWebSocket webSocket))
+            if (_memoryCache.TryGetValue(host, out WebsocketAdapter webSocket))
                 return webSocket;
 
             webSocket = _webSocketFactory.CreateClientWebSocket();
@@ -54,7 +53,7 @@ namespace ZiraLink.Client.Services
             return webSocket;
         }
 
-        private async Task InitializeWebSocketReceiverAsync(ClientWebSocket webSocket, string host)
+        private async Task InitializeWebSocketReceiverAsync(WebsocketAdapter webSocket, string host)
         {
             try
             {

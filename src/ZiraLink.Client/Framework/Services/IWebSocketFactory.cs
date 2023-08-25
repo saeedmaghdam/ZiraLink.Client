@@ -1,9 +1,9 @@
-﻿using System.Net.WebSockets;
+﻿using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client.Framework.Services
 {
     public interface IWebSocketFactory
     {
-        ClientWebSocket CreateClientWebSocket();
+        WebsocketAdapter CreateClientWebSocket();
     }
 }

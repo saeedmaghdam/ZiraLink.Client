@@ -5,12 +5,12 @@ namespace ZiraLink.Client.Services
 {
     public class WebSocketFactory : IWebSocketFactory
     {
-        public ClientWebSocket CreateClientWebSocket()
+        public WebsocketAdapter CreateClientWebSocket()
         {
             var webSocket = new ClientWebSocket();
             webSocket.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 
-            return webSocket;
+            return new WebsocketAdapter(webSocket);
         }
     }
 }
