@@ -1,5 +1,4 @@
-﻿using RabbitMQ.Client;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 
 namespace ZiraLink.Client.Framework.Services
 {

@@ -1,10 +1,10 @@
-﻿using System.Net.WebSockets;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text;
 using RabbitMQ.Client;
 using ZiraLink.Client.Models;
 using ZiraLink.Client.Framework.Services;
 using Microsoft.Extensions.Caching.Memory;
+using System.Net.WebSockets;
 
 namespace ZiraLink.Client.Services
 {
@@ -54,7 +54,7 @@ namespace ZiraLink.Client.Services
             return webSocket;
         }
 
-        private async Task InitializeWebSocketReceiverAsync(WebSocket webSocket, string host)
+        private async Task InitializeWebSocketReceiverAsync(ClientWebSocket webSocket, string host)
         {
             try
             {
