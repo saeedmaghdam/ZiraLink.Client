@@ -64,7 +64,7 @@ namespace ZiraLink.Client.Services
                 do
                 {
                     var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                    if (receiveResult.CloseStatus.HasValue)
+                    if (receiveResult.MessageType == System.Net.WebSockets.WebSocketMessageType.Close)
                         break;
 
                     var webSocketData = new WebSocketData
