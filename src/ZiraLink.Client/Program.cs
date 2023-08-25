@@ -85,6 +85,7 @@ builder.Services.AddSingleton<IWebSocketService, WebSocketService>();
 builder.Services.AddSingleton<IWebSocketFactory, WebSocketFactory>();
 builder.Services.AddSingleton<IHttpRequestHandlerService, HttpRequestHandlerService>();
 builder.Services.AddSingleton<IWebSocketHandlerService, WebSocketHandlerService>();
+builder.Services.AddSingleton<IHttpHelper, HttpHelper>();
 builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddSingleton(serviceProvider =>
