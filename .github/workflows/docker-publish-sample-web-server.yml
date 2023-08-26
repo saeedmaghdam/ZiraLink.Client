@@ -1,4 +1,4 @@
-name: Docker
+name: Dockerize Sample Web Application
 
 on:
   push:
