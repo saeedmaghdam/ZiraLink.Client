@@ -17,10 +17,14 @@ namespace ZiraLink.Client.IntegrationTests
         [Fact]
         public async Task SendGetRequestToSampleWebServerShouldReturnWeatherForecasts()
         {
+            // Arrange
             using var httpClient = _fixture.CreateHttpClient();
-            var response = await httpClient.GetStringAsync("/").ConfigureAwait(false);
-            var result = JsonSerializer.Deserialize<WeatherForecast[]>(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
+            // Act
+            var response = await httpClient.GetStringAsync("/").ConfigureAwait(false);
+
+            // Assert
+            var result = JsonSerializer.Deserialize<WeatherForecast[]>(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             Assert.NotNull(result);
             Assert.Equal(5, result!.Length);
         }
@@ -28,9 +32,11 @@ namespace ZiraLink.Client.IntegrationTests
         [Fact]
         public async Task SampleWebServerShouldBeAbleToAnswerWebSocketRequests()
         {
+            // Arrange
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-
             using var webSocketClient = await _fixture.CreateWebSocketClientAsync();
+
+            // Act & Assert
             for(int i = 0; i < 1000; i++)
             {
                 await SendMessageToWebSocket(webSocketClient, "ZiraLink", cancellationTokenSource.Token);
