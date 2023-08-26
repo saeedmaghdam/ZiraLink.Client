@@ -4,8 +4,11 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
 {
     public class InfrastructureFixture
     {
+        private readonly CancellationTokenSource _cancellationTokenSource;
         public InfrastructureFixture()
         {
+            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
             InitializeRabbitMq();
             InitializeSampleWebServer();
         }
@@ -20,7 +23,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
               .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5672).UntilPortIsAvailable(15672))
               .Build();
 
-            container.StartAsync().Wait();
+            container.StartAsync().Wait(_cancellationTokenSource.Token);
         }
 
         private void InitializeSampleWebServer()
@@ -32,7 +35,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
               .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(80)))
               .Build();
 
-            container.StartAsync().Wait();
+            container.StartAsync().Wait(_cancellationTokenSource.Token);
         }
     }
 }
