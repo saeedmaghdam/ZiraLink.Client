@@ -1,8 +1,10 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using ZiraLink.Client.IntegrationTests.Fixtures;
 
 namespace ZiraLink.Client.IntegrationTests
 {
+    [ExcludeFromCodeCoverage]
     [Collection("Infrastructure Collection")]
     public class Tests
     {

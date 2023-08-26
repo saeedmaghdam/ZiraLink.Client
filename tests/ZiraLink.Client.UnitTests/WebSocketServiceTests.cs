@@ -1,4 +1,5 @@
-﻿using System.Net.WebSockets;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.WebSockets;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -8,6 +9,7 @@ using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client.UnitTests
 {
+    [ExcludeFromCodeCoverage]
     public class WebSocketServiceTests
     {
         [Fact]

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client;
 using ZiraLink.Client.Framework.Helpers;
@@ -6,6 +9,7 @@ using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client.UnitTests
 {
+    [ExcludeFromCodeCoverage]
     public class HttpRequestHandlerServiceTests
     {
         [Fact]

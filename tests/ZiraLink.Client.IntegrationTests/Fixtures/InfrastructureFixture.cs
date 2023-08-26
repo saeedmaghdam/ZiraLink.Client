@@ -1,4 +1,5 @@
-﻿using System.Net.Security;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Security;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -6,6 +7,7 @@ using DotNet.Testcontainers.Builders;
 
 namespace ZiraLink.Client.IntegrationTests.Fixtures
 {
+    [ExcludeFromCodeCoverage]
     public class InfrastructureFixture
     {
         private readonly CancellationTokenSource _cancellationTokenSource;

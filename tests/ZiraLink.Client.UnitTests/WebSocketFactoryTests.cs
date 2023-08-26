@@ -1,7 +1,9 @@
-﻿using ZiraLink.Client.Services;
+﻿using System.Diagnostics.CodeAnalysis;
+using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client.UnitTests
 {
+    [ExcludeFromCodeCoverage]
     public class WebSocketFactoryTests
     {
         [Fact]

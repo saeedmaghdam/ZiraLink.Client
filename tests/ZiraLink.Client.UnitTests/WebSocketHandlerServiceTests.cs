@@ -1,12 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client;
-using ZiraLink.Client.Framework.Helpers;
 using ZiraLink.Client.Framework.Services;
 using ZiraLink.Client.Services;
 
 namespace ZiraLink.Client.UnitTests
 {
+    [ExcludeFromCodeCoverage]
     public class WebSocketHandlerServiceTests
     {
         [Fact]
