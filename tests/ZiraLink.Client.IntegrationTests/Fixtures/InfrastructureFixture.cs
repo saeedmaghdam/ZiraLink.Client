@@ -83,7 +83,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
         private void InitializeSampleWebServer()
         {
             var container = new ContainerBuilder()
-              .WithImage("ghcr.io/saeedmaghdam/ziralink.client/samplewebserver:main")
+              .WithImage("ghcr.io/saeedmaghdam/ziralink.client/sample-web-application:main")
               .WithPortBinding(9080, 80)
               .WithPortBinding(9443, 443)
               .WithEnvironment("ASPNETCORE_URLS", "http://+:80;https://+:443")
