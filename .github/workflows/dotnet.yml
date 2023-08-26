@@ -5,12 +5,14 @@ name: .NET
 
 on:
   push:
-    branches: [ "main" ]
+    branches: 
+      - "**"
     paths:
       - "src/**"
       - "tests/**"
   pull_request:
-    branches: [ "main" ]
+    branches: 
+      - "**"
 
 jobs:
   build:
