@@ -1,10 +1,10 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using ZiraLink.Client.IntegrationTests.Fixtures;
 using ZiraLink.Client.Models;
 
 namespace ZiraLink.Client.IntegrationTests
@@ -13,6 +13,10 @@ namespace ZiraLink.Client.IntegrationTests
     [Collection("Infrastructure Collection")]
     public class ClientTests
     {
+        private InfrastructureFixture _fixture;
+
+        public ClientTests(InfrastructureFixture fixture) => _fixture = fixture;
+
         [Fact]
         public async Task TestClientFunctionality()
         {
@@ -22,37 +26,46 @@ namespace ZiraLink.Client.IntegrationTests
             await using var application = new WebApplicationFactory<ProgramMock>();
             using var client = application.CreateClient();
 
-            var factory = new ConnectionFactory { HostName = "localhost", Port = 5872, UserName = "user", Password = "Pass123$" };
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
+            var requestUrl = new Uri("https://sample-web-server.app.ziralink.local:7001/");
+            var internalUrl = new Uri("https://localhost:9443");
+            var requestExchange = "request";
+            var requestQueue = "logon_request_bus";
+            var responseExchange = "response";
+            var responseQueue = "response_bus";
 
-            channel.ExchangeDeclare("request", "direct", false, false, null);
-            channel.QueueDeclare("logon_request_bus", false, false, false, null);
-            channel.QueueBind("logon_request_bus", "request", "logon_request_bus", null);
+            _fixture.Channel.ExchangeDeclare(requestExchange, "direct", false, false, null);
+            _fixture.Channel.QueueDeclare(requestQueue, false, false, false, null);
+            _fixture.Channel.QueueBind(requestQueue, requestExchange, requestQueue, null);
 
-            channel.ExchangeDeclare("response", "direct", false, false, null);
-            channel.QueueDeclare("response_bus", false, false, false, null);
-            channel.QueueBind("response_bus", "response", "", null);
+            _fixture.Channel.ExchangeDeclare(responseExchange, "direct", false, false, null);
+            _fixture.Channel.QueueDeclare(responseQueue, false, false, false, null);
+            _fixture.Channel.QueueBind(responseQueue, responseExchange, "", null);
 
             // Act
-            var properties = channel.CreateBasicProperties();
+            var properties = _fixture.Channel.CreateBasicProperties();
             properties.MessageId = Guid.NewGuid().ToString();
             var headers = new Dictionary<string, object>();
-            headers.Add("IntUrl", "https://localhost:9443");
-            headers.Add("Host", "sample-web-server.app.ziralink.local:7001");
+            headers.Add("IntUrl", internalUrl.ToString());
+            headers.Add("Host", requestUrl.Authority);
             properties.Headers = headers;
 
-            var message = "{\"RequestUrl\":\"https://sample-web-server.app.ziralink.local:7001/\",\"Method\":\"GET\",\"Headers\":[],\"Bytes\":null}";
-            channel.BasicPublish("request", "logon_request_bus", properties, Encoding.UTF8.GetBytes(message));
+            var requestModel = new HttpRequestModel
+            {
+                RequestUrl = requestUrl.ToString(),
+                Method = "GET",
+                Headers = new Dictionary<string, IEnumerable<string>>(),
+                Bytes = null
+            };
+            _fixture.Channel.BasicPublish(requestExchange, requestQueue, properties, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(requestModel)));
 
             var response = default(string);
-            var consumer = new EventingBasicConsumer(channel);
+            var consumer = new EventingBasicConsumer(_fixture.Channel);
             consumer.Received += (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 response = Encoding.UTF8.GetString(body);
             };
-            channel.BasicConsume(queue: "response_bus",
+            _fixture.Channel.BasicConsume(queue: responseQueue,
                                  autoAck: true,
                                  consumer: consumer);
 

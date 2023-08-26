@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using DotNet.Testcontainers.Builders;
+using RabbitMQ.Client;
 
 namespace ZiraLink.Client.IntegrationTests.Fixtures
 {
@@ -14,9 +15,15 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly string _certificatePath;
         private readonly string _certificatePassword;
+        private readonly IModel _channel;
 
         public string CertificatePath => _certificatePath;
         public string CertificatePassword => _certificatePassword;
+        public IModel Channel => _channel;
+        public const string RabbitMqHost = "localhost";
+        public const int RabbitMqPort = 5872;
+        public const string RabbitMqUsername = "user";
+        public const string RabbitMqPassword = "Pass123$";
 
         public InfrastructureFixture()
         {
@@ -26,6 +33,10 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
 
             InitializeRabbitMq();
             InitializeSampleWebServer();
+
+            var factory = new ConnectionFactory { HostName = RabbitMqHost, Port = RabbitMqPort, UserName = RabbitMqUsername, Password = RabbitMqPassword };
+            var connection = factory.CreateConnection();
+            _channel = connection.CreateModel();
         }
 
         public HttpClient CreateHttpClient()
@@ -78,10 +89,10 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
         {
             var container = new ContainerBuilder()
               .WithImage("bitnami/rabbitmq:latest")
-              .WithPortBinding(5872, 5672)
+              .WithPortBinding(RabbitMqPort, 5672)
               .WithPortBinding(15872, 15672)
-              .WithEnvironment("RABBITMQ_USERNAME", "user")
-              .WithEnvironment("RABBITMQ_PASSWORD", "Pass123$")
+              .WithEnvironment("RABBITMQ_USERNAME", RabbitMqUsername)
+              .WithEnvironment("RABBITMQ_PASSWORD", RabbitMqPassword)
               .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5672).UntilHttpRequestIsSucceeded(r => r.ForPort(15672)))
               .Build();
 
