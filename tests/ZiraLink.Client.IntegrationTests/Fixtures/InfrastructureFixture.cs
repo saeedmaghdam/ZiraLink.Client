@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net.Security;
+using System.Net.WebSockets;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -11,18 +12,15 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
     public class InfrastructureFixture
     {
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly string _caCertificatePath;
         private readonly string _certificatePath;
         private readonly string _certificatePassword;
 
-        public string CACertificatePath => _caCertificatePath;
         public string CertificatePath => _certificatePath;
         public string CertificatePassword => _certificatePassword;
 
         public InfrastructureFixture()
         {
-            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-            _caCertificatePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!, "certs", "localhost", "ca.crt");
+            _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             _certificatePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!, "certs", "localhost", "server.pfx");
             _certificatePassword = "son";
 
@@ -46,7 +44,6 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
             };
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
             handler.SslProtocols = SslProtocols.Tls12;
-            handler.ClientCertificates.Add(new X509Certificate2(CACertificatePath));
             handler.ClientCertificates.Add(new X509Certificate2(CertificatePath, CertificatePassword));
             var httpClient = new HttpClient(handler)
             {
@@ -54,6 +51,27 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
             };
 
             return httpClient;
+        }
+
+        public async Task<ClientWebSocket> CreateWebSocketClientAsync()
+        {
+            var webSocketClient = new ClientWebSocket();
+            webSocketClient.Options.ClientCertificates.Add(new X509Certificate2(CertificatePath, CertificatePassword));
+            webSocketClient.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+            {
+                string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
+                if (certificate!.GetCertHashString() == expectedThumbprint)
+                    return true;
+
+                if (sslPolicyErrors == SslPolicyErrors.None)
+                    return true;
+
+                return false;
+            };
+
+            await webSocketClient.ConnectAsync(new Uri("wss://localhost:9443"), _cancellationTokenSource.Token);
+
+            return webSocketClient;
         }
 
         private void InitializeRabbitMq()
