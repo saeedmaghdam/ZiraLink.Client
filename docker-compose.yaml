@@ -1,0 +1,9 @@
+version: '3.7'
+
+services:
+  api:
+    image: ziralink.client
+    container_name: ziralink-client
+    build:
+      context: ./
+      dockerfile: ./src/ZiraLink.Client/Dockerfile
