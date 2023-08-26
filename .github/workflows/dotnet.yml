@@ -12,7 +12,7 @@ on:
       - "tests/**"
   pull_request:
     branches: 
-      - "**"
+      - "main"
 
 jobs:
   build:
