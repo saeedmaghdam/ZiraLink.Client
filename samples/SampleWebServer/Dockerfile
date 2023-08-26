@@ -19,4 +19,12 @@ RUN dotnet publish "SampleWebServer.csproj" -c Release -o /app/publish /p:UseApp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+COPY ./certs/server.pfx /app/server.pfx
+
+COPY ./certs/ca.crt /usr/local/share/ca-certificates/ca.crt
+COPY ./certs/server.crt /usr/local/share/ca-certificates/server.crt
+COPY ./certs/server.key /usr/local/share/ca-certificates/server.key
+RUN update-ca-certificates
+
 ENTRYPOINT ["dotnet", "SampleWebServer.dll"]
