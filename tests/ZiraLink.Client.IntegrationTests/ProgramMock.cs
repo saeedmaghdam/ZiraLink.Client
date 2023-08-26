@@ -51,7 +51,7 @@ builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddSingleton(serviceProvider =>
 {
-    var remainingAttempts = 5;
+    var remainingAttempts = 10;
     do
     {
         try
