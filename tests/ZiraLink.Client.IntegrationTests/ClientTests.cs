@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using Microsoft.AspNetCore.Mvc.Testing;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -33,16 +34,18 @@ namespace ZiraLink.Client.IntegrationTests
             var responseExchange = "response";
             var responseQueue = "response_bus";
 
-            _fixture.Channel.ExchangeDeclare(requestExchange, "direct", false, false, null);
-            _fixture.Channel.QueueDeclare(requestQueue, false, false, false, null);
-            _fixture.Channel.QueueBind(requestQueue, requestExchange, requestQueue, null);
+            var channel = _fixture.CreateChannel();
 
-            _fixture.Channel.ExchangeDeclare(responseExchange, "direct", false, false, null);
-            _fixture.Channel.QueueDeclare(responseQueue, false, false, false, null);
-            _fixture.Channel.QueueBind(responseQueue, responseExchange, "", null);
+            channel.ExchangeDeclare(requestExchange, "direct", false, false, null);
+            channel.QueueDeclare(requestQueue, false, false, false, null);
+            channel.QueueBind(requestQueue, requestExchange, requestQueue, null);
+
+            channel.ExchangeDeclare(responseExchange, "direct", false, false, null);
+            channel.QueueDeclare(responseQueue, false, false, false, null);
+            channel.QueueBind(responseQueue, responseExchange, "", null);
 
             // Act
-            var properties = _fixture.Channel.CreateBasicProperties();
+            var properties = channel.CreateBasicProperties();
             properties.MessageId = Guid.NewGuid().ToString();
             var headers = new Dictionary<string, object>();
             headers.Add("IntUrl", internalUrl.ToString());
@@ -56,16 +59,16 @@ namespace ZiraLink.Client.IntegrationTests
                 Headers = new Dictionary<string, IEnumerable<string>>(),
                 Bytes = null
             };
-            _fixture.Channel.BasicPublish(requestExchange, requestQueue, properties, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(requestModel)));
+            channel.BasicPublish(requestExchange, requestQueue, properties, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(requestModel)));
 
             var response = default(string);
-            var consumer = new EventingBasicConsumer(_fixture.Channel);
+            var consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
             {
                 var body = ea.Body.ToArray();
                 response = Encoding.UTF8.GetString(body);
             };
-            _fixture.Channel.BasicConsume(queue: responseQueue,
+            channel.BasicConsume(queue: responseQueue,
                                  autoAck: true,
                                  consumer: consumer);
 

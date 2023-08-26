@@ -15,11 +15,9 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly string _certificatePath;
         private readonly string _certificatePassword;
-        private readonly IModel _channel;
 
         public string CertificatePath => _certificatePath;
         public string CertificatePassword => _certificatePassword;
-        public IModel Channel => _channel;
         public const string RabbitMqHost = "localhost";
         public const int RabbitMqPort = 5872;
         public const string RabbitMqUsername = "user";
@@ -33,10 +31,6 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
 
             InitializeRabbitMq();
             InitializeSampleWebServer();
-
-            var factory = new ConnectionFactory { HostName = RabbitMqHost, Port = RabbitMqPort, UserName = RabbitMqUsername, Password = RabbitMqPassword };
-            var connection = factory.CreateConnection();
-            _channel = connection.CreateModel();
         }
 
         public HttpClient CreateHttpClient()
@@ -62,6 +56,13 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
             };
 
             return httpClient;
+        }
+
+        public IModel CreateChannel()
+        {
+            var factory = new ConnectionFactory { HostName = RabbitMqHost, Port = RabbitMqPort, UserName = RabbitMqUsername, Password = RabbitMqPassword };
+            var connection = factory.CreateConnection();
+            return connection.CreateModel();
         }
 
         public async Task<ClientWebSocket> CreateWebSocketClientAsync()
