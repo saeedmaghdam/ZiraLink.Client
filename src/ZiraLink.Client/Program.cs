@@ -90,13 +90,26 @@ builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddSingleton(serviceProvider =>
 {
-    var factory = new ConnectionFactory();
-    factory.DispatchConsumersAsync = true;
-    factory.Uri = new Uri(Configuration["ZIRALINK_CONNECTIONSTRINGS_RABBITMQ"]!);
-    var connection = factory.CreateConnection();
-    var channel = connection.CreateModel();
+    var remainingAttempts = 5;
+    do
+    {
+        try
+        {
+            var factory = new ConnectionFactory();
+            factory.DispatchConsumersAsync = true;
+            factory.Uri = new Uri(Configuration["ZIRALINK_CONNECTIONSTRINGS_RABBITMQ"]!);
+            var connection = factory.CreateConnection();
+            var channel = connection.CreateModel();
+            return channel;
+        }
+        catch
+        {
+            if (--remainingAttempts == 0)
+                throw;
 
-    return channel;
+            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+        }
+    } while (true);
 });
 
 builder.Services.AddMemoryCache();

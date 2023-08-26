@@ -68,11 +68,9 @@ builder.Services.AddSingleton(serviceProvider =>
             if (--remainingAttempts == 0)
                 throw;
 
-            Task.Delay(TimeSpan.FromSeconds(2)).Wait();
+            Task.Delay(TimeSpan.FromSeconds(5)).Wait();
         }
     } while (true);
-
-    
 });
 
 builder.Services.AddMemoryCache();
