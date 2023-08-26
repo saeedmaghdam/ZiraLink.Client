@@ -79,9 +79,10 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
             var container = new ContainerBuilder()
               .WithImage("bitnami/rabbitmq:latest")
               .WithPortBinding(5872, 5672)
+              .WithPortBinding(15872, 15672)
               .WithEnvironment("RABBITMQ_USERNAME", "user")
               .WithEnvironment("RABBITMQ_PASSWORD", "Pass123$")
-              .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5672).UntilPortIsAvailable(15672))
+              .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5672).UntilHttpRequestIsSucceeded(r => r.ForPort(15672)))
               .Build();
 
             container.StartAsync().Wait(_cancellationTokenSource.Token);

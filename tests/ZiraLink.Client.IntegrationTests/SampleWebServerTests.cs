@@ -12,7 +12,7 @@ namespace ZiraLink.Client.IntegrationTests
     {
         private readonly InfrastructureFixture _fixture;
 
-        public SampleWebServerTests(InfrastructureFixture fixture) => _fixture = fixture;
+        public SampleWebServerTests(InfrastructureFixture fixture2) => _fixture = fixture2;
 
         [Fact]
         public async Task SendGetRequestToSampleWebServerShouldReturnWeatherForecasts()

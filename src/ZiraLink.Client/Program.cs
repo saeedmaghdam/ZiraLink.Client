@@ -175,5 +175,6 @@ app.UseEndpoints(endpoints =>
     }).ExcludeFromDescription();
 });
 
-
 app.Run();
+
+public partial class Program { }
