@@ -6,7 +6,7 @@ on:
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
     paths:
-      - "samples/SampleWebServer"
+      - "samples/SampleWebServer/**"
   pull_request:
     branches: [ "main" ]
 
