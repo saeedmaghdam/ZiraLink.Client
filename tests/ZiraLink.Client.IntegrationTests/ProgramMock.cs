@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -23,6 +24,11 @@ IConfiguration Configuration = new ConfigurationBuilder()
     .Add(new CustomConfigurationSource())
     .AddEnvironmentVariables()
     .Build();
+
+Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(Configuration)
+                .CreateLogger();
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -63,8 +69,10 @@ builder.Services.AddSingleton(serviceProvider =>
             var channel = connection.CreateModel();
             return channel;
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Logger.Warning(ex.Message);
+
             if (--remainingAttempts == 0)
                 throw;
 
