@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{47A4
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebServer", "samples\SampleWebServer\SampleWebServer.csproj", "{A74C3C65-85FD-44C0-A212-BC6841CB8F9E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiraLink.Client.IntegrationTests", "tests\ZiraLink.Client.IntegrationTests\ZiraLink.Client.IntegrationTests.csproj", "{D87B7D81-A132-4A44-931E-A916A97CE622}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A74C3C65-85FD-44C0-A212-BC6841CB8F9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A74C3C65-85FD-44C0-A212-BC6841CB8F9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A74C3C65-85FD-44C0-A212-BC6841CB8F9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D87B7D81-A132-4A44-931E-A916A97CE622}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D87B7D81-A132-4A44-931E-A916A97CE622}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D87B7D81-A132-4A44-931E-A916A97CE622}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D87B7D81-A132-4A44-931E-A916A97CE622}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,6 +47,7 @@ Global
 		{FEBF93B1-8EDD-4579-A917-49E63A89889B} = {0AA670D6-3D95-445B-9BD2-7D452FB01B6D}
 		{D367D347-2AAE-41A0-AF98-072F8E5B0B5A} = {CB224CB2-AE1A-457C-8526-EF4D462198F6}
 		{A74C3C65-85FD-44C0-A212-BC6841CB8F9E} = {47A4BE27-7C7F-40E8-912E-1DF5FD655D98}
+		{D87B7D81-A132-4A44-931E-A916A97CE622} = {CB224CB2-AE1A-457C-8526-EF4D462198F6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {48D09BEB-64DF-4DF9-A970-6C95E5E96846}
