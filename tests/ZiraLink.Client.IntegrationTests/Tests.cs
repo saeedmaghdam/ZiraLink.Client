@@ -11,11 +11,12 @@ namespace ZiraLink.Client.IntegrationTests
             // Create a new instance of a container.
             var container = new ContainerBuilder()
               // Set the image for the container to "testcontainers/helloworld:1.1.0".
-              .WithImage("testcontainers/helloworld:1.1.0")
+              .WithImage("ghcr.io/saeedmaghdam/ziralink.client/samplewebserver:main")
               // Bind port 8080 of the container to a random port on the host.
-              .WithPortBinding(8080, true)
+              .WithPortBinding(9080, 80)
+              .WithPortBinding(9443, 443)
               // Wait until the HTTP endpoint of the container is available.
-              .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(8080)))
+              .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(80)))
               // Build the container configuration.
               .Build();
 
@@ -26,14 +27,11 @@ namespace ZiraLink.Client.IntegrationTests
             // Create a new instance of HttpClient to send HTTP requests.
             var httpClient = new HttpClient();
 
-            // Construct the request URI by specifying the scheme, hostname, assigned random host port, and the endpoint "uuid".
-            var requestUri = new UriBuilder(Uri.UriSchemeHttp, container.Hostname, container.GetMappedPublicPort(8080), "uuid").Uri;
-
             // Send an HTTP GET request to the specified URI and retrieve the response as a string.
-            var guid = await httpClient.GetStringAsync(requestUri)
+            var result = await httpClient.GetStringAsync("http://localhost:9080/")
               .ConfigureAwait(false);
 
-            Assert.True(Guid.TryParse(guid, out _));
+            Assert.NotNull(result);
         }
     }
 }
