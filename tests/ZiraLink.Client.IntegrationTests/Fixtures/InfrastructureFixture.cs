@@ -36,17 +36,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
         public HttpClient CreateHttpClient()
         {
             var handler = new HttpClientHandler();
-            handler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
-            {
-                string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
-                if (certificate!.GetCertHashString() == expectedThumbprint)
-                    return true;
-
-                if (sslPolicyErrors == SslPolicyErrors.None)
-                    return true;
-
-                return false;
-            };
+            handler.ServerCertificateCustomValidationCallback = RemoteCertificateValidationCallback;
             handler.ClientCertificateOptions = ClientCertificateOption.Manual;
             handler.SslProtocols = SslProtocols.Tls12;
             handler.ClientCertificates.Add(new X509Certificate2(CertificatePath, CertificatePassword));
@@ -69,17 +59,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
         {
             var webSocketClient = new ClientWebSocket();
             webSocketClient.Options.ClientCertificates.Add(new X509Certificate2(CertificatePath, CertificatePassword));
-            webSocketClient.Options.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
-            {
-                string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
-                if (certificate!.GetCertHashString() == expectedThumbprint)
-                    return true;
-
-                if (sslPolicyErrors == SslPolicyErrors.None)
-                    return true;
-
-                return false;
-            };
+            webSocketClient.Options.RemoteCertificateValidationCallback = RemoteCertificateValidationCallback;
 
             await webSocketClient.ConnectAsync(new Uri("wss://localhost:9443"), _cancellationTokenSource.Token);
 
@@ -114,6 +94,18 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
               .Build();
 
             container.StartAsync().Wait(_cancellationTokenSource.Token);
+        }
+
+        private bool RemoteCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        {
+            string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
+            if (certificate!.GetCertHashString() == expectedThumbprint)
+                return true;
+
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+
+            return false;
         }
     }
 }
