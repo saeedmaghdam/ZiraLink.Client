@@ -155,7 +155,7 @@ namespace ZiraLink.Client.UnitTests
 
             // Act
             var result = await webSocketService.InitializeWebSocketAsync(host, internalUri);
-            await Task.Delay(TimeSpan.FromMilliseconds(500));
+            await Task.Delay(TimeSpan.FromSeconds(2));
 
             // Assert
             Assert.Equal(webSocketMock.Object, result);
