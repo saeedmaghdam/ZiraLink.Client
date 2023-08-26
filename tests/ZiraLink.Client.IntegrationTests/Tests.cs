@@ -1,18 +1,21 @@
 ﻿using System.Text.Json;
+using ZiraLink.Client.IntegrationTests.Fixtures;
 
 namespace ZiraLink.Client.IntegrationTests
 {
     [Collection("Infrastructure Collection")]
     public class Tests
     {
+        private readonly InfrastructureFixture _fixture;
+
+        public Tests(InfrastructureFixture fixture) => _fixture = fixture;
+
         [Fact]
         public async Task TestContainer()
-        {        
-            var httpClient = new HttpClient();
-
-            var response = await httpClient.GetStringAsync("http://localhost:9080/")
-              .ConfigureAwait(false);
-            var result = JsonSerializer.Deserialize<WeatherForecast[]>(response);
+        {
+            using var httpClient = _fixture.CreateHttpClient();
+            var response = await httpClient.GetStringAsync("/").ConfigureAwait(false);
+            var result = JsonSerializer.Deserialize<WeatherForecast[]>(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
             Assert.NotNull(result);
             Assert.Equal(5, result!.Length);
