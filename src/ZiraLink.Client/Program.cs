@@ -123,11 +123,14 @@ builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
-var hostHelper = app.Services.GetRequiredService<IHostsHelper>();
-hostHelper.ConfigureDns();
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Test")
+{
+    var hostHelper = app.Services.GetRequiredService<IHostsHelper>();
+    hostHelper.ConfigureDns();
 
-var certificateHelper = app.Services.GetRequiredService<ICertificateHelper>();
-certificateHelper.InstallCertificate();
+    var certificateHelper = app.Services.GetRequiredService<ICertificateHelper>();
+    certificateHelper.InstallCertificate();
+}
 
 app.Use((context, next) =>
 {
