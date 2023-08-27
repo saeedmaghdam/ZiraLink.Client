@@ -22,6 +22,8 @@ namespace ZiraLink.Client.Services
 
         public void InitializeWebSocketConsumer(string username)
         {
+            _logger.LogInformation("Starting websocket request handler ...");
+
             var serverBusQueueName = $"{username}_websocket_server_bus";
             _channel.QueueDeclare(queue: serverBusQueueName,
                      durable: false,

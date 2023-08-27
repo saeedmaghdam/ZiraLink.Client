@@ -7,12 +7,14 @@ namespace ZiraLink.Client
 {
     public class Worker : BackgroundService
     {
+        private readonly ILogger<Worker> _logger;
         private readonly ISignalService _signalService;
         private readonly IHttpRequestHandlerService _httpRequestHandlerService;
         private readonly IWebSocketHandlerService _webSocketHandlerService;
 
-        public Worker(ISignalService signalService, IHttpRequestHandlerService httpRequestHandlerService, IWebSocketHandlerService webSocketHandlerService)
+        public Worker(ILogger<Worker> logger, ISignalService signalService, IHttpRequestHandlerService httpRequestHandlerService, IWebSocketHandlerService webSocketHandlerService)
         {
+            _logger = logger;
             _signalService = signalService;
             _httpRequestHandlerService = httpRequestHandlerService;
             _webSocketHandlerService = webSocketHandlerService;
@@ -20,6 +22,8 @@ namespace ZiraLink.Client
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Starting service ...");
+
             var _ = Task.Run(async () =>
             {
                 if (!System.IO.File.Exists("profile"))

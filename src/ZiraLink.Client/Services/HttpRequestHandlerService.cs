@@ -23,6 +23,8 @@ namespace ZiraLink.Client.Services
 
         public void InitializeHttpRequestConsumer(string username)
         {
+            _logger.LogInformation("Starting http request handler ...");
+
             var responseExchangeName = "response";
             var responseQueueName = "response_bus";
             var requestQueueName = $"{username}_request_bus";
