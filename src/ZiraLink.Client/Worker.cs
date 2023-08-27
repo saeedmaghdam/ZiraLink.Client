@@ -26,10 +26,14 @@ namespace ZiraLink.Client
 
             var _ = Task.Run(async () =>
             {
-                if (!System.IO.File.Exists("profile"))
+                var fileName = "profile";
+                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Test")
+                    fileName = "profile.test";
+
+                if (!System.IO.File.Exists(fileName))
                     _signalService.WaitOne();
 
-                var content = System.IO.File.ReadAllText("profile");
+                var content = System.IO.File.ReadAllText(fileName);
                 var profile = JsonSerializer.Deserialize<ProfileViewModel>(content);
 
                 // Set up RabbitMQ connection and channels

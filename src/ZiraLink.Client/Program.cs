@@ -160,7 +160,11 @@ app.UseEndpoints(endpoints =>
     endpoints.MapBffManagementEndpoints();
     endpoints.MapGet("/", async (HttpContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ISignalService signalService) =>
     {
-        if (System.IO.File.Exists("profile"))
+        var fileName = "profile";
+        if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Test")
+            fileName = "profile.test";
+
+        if (System.IO.File.Exists(fileName))
             return "Authorized";
 
         if (!context.User.Identity.IsAuthenticated)
@@ -191,7 +195,7 @@ app.UseEndpoints(endpoints =>
 
         var result = await userInfoResponse.HttpResponse.Content.ReadAsStringAsync();
 
-        System.IO.File.WriteAllText("profile", result);
+        System.IO.File.WriteAllText(fileName, result);
         signalService.Set();
 
         return result;
