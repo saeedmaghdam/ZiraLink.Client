@@ -15,6 +15,8 @@ using ZiraLink.Client.Framework.Application;
 using ZiraLink.Client.Framework.Helpers;
 using RabbitMQ.Client;
 using Serilog;
+using System.Net;
+using System.Net.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,21 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container.
+if (Configuration["ASPNETCORE_ENVIRONMENT"] == "Test")
+{
+    ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+    {
+        string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
+        if (certificate!.GetCertHashString() == expectedThumbprint)
+            return true;
+
+        if (sslPolicyErrors == SslPolicyErrors.None)
+            return true;
+
+        return false;
+    };
+}
+
 builder.Services.AddAuthorization();
 builder.Services
     .AddBff()
