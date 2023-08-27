@@ -130,13 +130,14 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Test")
 
     var certificateHelper = app.Services.GetRequiredService<ICertificateHelper>();
     certificateHelper.InstallCertificate();
+
+    app.Use((context, next) =>
+    {
+        context.Request.Scheme = "https";
+        return next(context);
+    });
 }
 
-app.Use((context, next) =>
-{
-    context.Request.Scheme = "https";
-    return next(context);
-});
 app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
