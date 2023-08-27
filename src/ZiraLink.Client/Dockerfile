@@ -31,6 +31,9 @@ COPY ./certs/server.pfx /app/server.pfx
 COPY ./certs/ca.crt /usr/local/share/ca-certificates/ca.crt
 COPY ./certs/server.crt /usr/local/share/ca-certificates/server.crt
 COPY ./certs/server.key /usr/local/share/ca-certificates/server.key
+COPY ./certs/localhost/ca.crt /usr/local/share/ca-certificates/ca-localhost.crt
+COPY ./certs/localhost/server.crt /usr/local/share/ca-certificates/server-localhost.crt
+COPY ./certs/localhost/server.key /usr/local/share/ca-certificates/server-localhost.key
 RUN update-ca-certificates
 
 ENTRYPOINT ["dotnet", "ZiraLink.Client.dll"]
