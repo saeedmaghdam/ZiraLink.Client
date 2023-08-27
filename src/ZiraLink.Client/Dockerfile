@@ -2,6 +2,7 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS base
 WORKDIR /app
+EXPOSE 8196
 EXPOSE 8197
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS restore
