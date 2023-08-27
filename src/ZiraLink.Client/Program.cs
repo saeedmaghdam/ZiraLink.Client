@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(options =>
             {
                 options.RequireHttpsMetadata = false;
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.Authority = Configuration["ZIRALINK_URL_IDS"]!;
+                options.Authority = new Uri(Configuration["ZIRALINK_URL_IDS"]!).ToString();
                 options.ClientId = "client";
                 options.ClientSecret = "secret";
                 options.ResponseType = OidcConstants.ResponseTypes.Code;
@@ -172,8 +172,8 @@ app.UseEndpoints(endpoints =>
         var userId = httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(claim => claim.Type == "sub");
 
         var token = await context.GetTokenAsync("access_token");
-        Uri baseUri = new Uri(configuration["ZIRALINK_URL_IDS"]);
-        Uri uri = new Uri(baseUri, "connect/userinfo");
+        var baseUri = new Uri(configuration["ZIRALINK_URL_IDS"]);
+        var uri = new Uri(baseUri, "connect/userinfo");
         var userInfoRequest = new UserInfoRequest
         {
             Address = uri.ToString(),
