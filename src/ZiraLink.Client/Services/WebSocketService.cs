@@ -3,26 +3,25 @@ using System.Text;
 using RabbitMQ.Client;
 using ZiraLink.Client.Models;
 using ZiraLink.Client.Framework.Services;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiraLink.Client.Services
 {
     public class WebSocketService: IWebSocketService
     {
         private readonly IWebSocketFactory _webSocketFactory;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICache _cache;
         private readonly IModel _channel;
 
-        public WebSocketService(IWebSocketFactory webSocketFactory, IMemoryCache memoryCache, IModel channel)
+        public WebSocketService(IWebSocketFactory webSocketFactory, ICache cache, IModel channel)
         {
             _webSocketFactory = webSocketFactory;
-            _memoryCache = memoryCache;
+            _cache = cache;
             _channel = channel;
         }
 
         public async Task<IWebSocket> InitializeWebSocketAsync(string host, Uri internalUri)
         {
-            if (_memoryCache.TryGetValue(host, out IWebSocket webSocket))
+            if (_cache.TryGetWebSocket(host, out IWebSocket webSocket))
                 return webSocket;
 
             webSocket = _webSocketFactory.CreateClientWebSocket();
@@ -45,10 +44,9 @@ namespace ZiraLink.Client.Services
             }
 
             await webSocket.ConnectAsync(webSocketUriBuilder.Uri, default);
-            _memoryCache.Set(host, webSocket);
+            _cache.SetWebSocket(host, webSocket);
 
             var task = Task.Run(async () => await InitializeWebSocketReceiverAsync(webSocket, host));
-            _memoryCache.Set($"task_{host}", task);
 
             return webSocket;
         }
@@ -88,8 +86,7 @@ namespace ZiraLink.Client.Services
             }
             finally
             {
-                _memoryCache.Remove(host);
-                _memoryCache.Remove($"task_{host}");
+                _cache.RemoveWebSocket(host);
             }
         }
     }
