@@ -6,7 +6,7 @@ name: Build & Test
 on:
   push:
     branches: 
-      - "**"
+      - "main"
     paths:
       - "src/**"
       - "tests/**"
