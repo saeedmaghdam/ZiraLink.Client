@@ -56,6 +56,8 @@ namespace ZiraLink.Client.Services
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
+                _channel.BasicAck(ea.DeliveryTag, false);
+
                 try
                 {
                     var requestID = ea.BasicProperties.MessageId;
@@ -81,10 +83,6 @@ namespace ZiraLink.Client.Services
                 catch (Exception ex)
                 {
                     _logger.LogError(ex.Message);
-                }
-                finally
-                {
-                    _channel.BasicAck(ea.DeliveryTag, false);
                 }
             };
 
