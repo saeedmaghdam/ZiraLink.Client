@@ -52,4 +52,4 @@ We would like to thank the open-source community for their contributions and sup
 
 If you find ZiraLink useful, please consider giving our GitHub repository a star to show your support.
 
-[![GitHub stars](https://img.shields.io/github/stars/saeedmaghdam/ZiraLink.Client)](https://github.com/saeedmaghdam/ZiraLink/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/saeedmaghdam/ZiraLink.Client)](https://github.com/saeedmaghdam/ZiraLink.Client/stargazers)
