@@ -19,9 +19,9 @@ namespace ZiraLink.Client.Services
         public bool TryGetAppProjects(out List<AppProjectDto> appProjects) => _memoryCache.TryGetValue("appprojects", out appProjects);
         public void SetTcpListener(int port, TcpListener tcpListener) => _memoryCache.Set(port, tcpListener);
         public bool TryGetTcpListener(int port, out TcpListener tcpListener) => _memoryCache.TryGetValue(port, out tcpListener);
-        public void SetUsePortModel(int port, UsePortCacheModel usePortCacheModel) => _memoryCache.Set(port, usePortCacheModel);
-        public bool TryGetUsePortModel(int port, out UsePortCacheModel usePortCacheModel) => _memoryCache.TryGetValue(port, out usePortCacheModel);
-        public void SetSharePortModel(string useportUsername, int useportPort, SharePortCacheModel sharePortCacheModel) => _memoryCache.Set($"{useportUsername}_{useportPort}", sharePortCacheModel);
-        public bool TryGetSharePortModel(string useportUsername, int useportPort, out SharePortCacheModel sharePortCacheModel) => _memoryCache.TryGetValue($"{useportUsername}_{useportPort}", out sharePortCacheModel);
+        public void SetUsePortModel(int port, string connectionId, UsePortCacheModel usePortCacheModel) => _memoryCache.Set($"{port}_{connectionId}", usePortCacheModel);
+        public bool TryGetUsePortModel(int port, string connectionId, out UsePortCacheModel usePortCacheModel) => _memoryCache.TryGetValue($"{port}_{connectionId}", out usePortCacheModel);
+        public void SetSharePortModel(string useportUsername, int useportPort, string connectionId, SharePortCacheModel sharePortCacheModel) => _memoryCache.Set($"{useportUsername}_{useportPort}_{connectionId}", sharePortCacheModel);
+        public bool TryGetSharePortModel(string useportUsername, int useportPort, string connectionId, out SharePortCacheModel sharePortCacheModel) => _memoryCache.TryGetValue($"{useportUsername}_{useportPort}_{connectionId}", out sharePortCacheModel);
     }
 }

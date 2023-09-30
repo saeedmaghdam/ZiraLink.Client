@@ -4,6 +4,6 @@ namespace ZiraLink.Client.Framework.Services
 {
     public interface ISharePortSocketService
     {
-        Task InitializeAsync(string username, List<AppProjectDto> appProjects, CancellationToken cancellationToken);
+        void Initialize(string username, List<AppProjectDto> appProjects, CancellationToken cancellationToken);
     }
 }

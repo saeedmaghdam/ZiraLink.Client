@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using System.Text.Json;
-using System.Threading;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using ZiraLink.Client.Framework.Services;
@@ -37,8 +36,8 @@ namespace ZiraLink.Client.Services
 
                 var appProjects = JsonSerializer.Deserialize<List<AppProjectDto>>(message);
                 _cache.SetAppProjects(appProjects);
-                await _usePortSocketService.InitializeAsync(username, appProjects, cancellationToken);
-                await _sharePortSocketService.InitializeAsync(username, appProjects, cancellationToken);
+                _usePortSocketService.Initialize(username, appProjects, cancellationToken);
+                _sharePortSocketService.Initialize(username, appProjects, cancellationToken);
 
                 _channel.BasicAck(ea.DeliveryTag, false);
             };

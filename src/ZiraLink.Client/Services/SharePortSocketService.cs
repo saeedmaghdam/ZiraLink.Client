@@ -20,7 +20,7 @@ namespace ZiraLink.Client.Services
             _cache = cache;
         }
 
-        public async Task InitializeAsync(string username, List<AppProjectDto> appProjects, CancellationToken cancellationToken)
+        public void Initialize(string username, List<AppProjectDto> appProjects, CancellationToken cancellationToken)
         {
             var queueName = $"{username}_client_shareport_network_packets";
 
@@ -35,15 +35,16 @@ namespace ZiraLink.Client.Services
 
                 var useportUsername = Encoding.UTF8.GetString(ea.BasicProperties.Headers["useport_username"] as byte[]);
                 var useportPort = int.Parse(ea.BasicProperties.Headers["useport_port"].ToString()!);
+                var useportConnectionId = Encoding.UTF8.GetString(ea.BasicProperties.Headers["useport_connectionid"] as byte[]);
 
-                if (!_cache.TryGetSharePortModel(useportUsername, useportPort, out var sharePortCacheModel))
+                if (!_cache.TryGetSharePortModel(useportUsername, useportPort, useportConnectionId, out var sharePortCacheModel))
                 {
                     var client = new TcpClient();
                     await client.ConnectAsync(new IPEndPoint(IPAddress.Parse("127.0.0.1"), int.Parse(ea.BasicProperties.Headers["sharedport_port"].ToString()!)));
-                    var handleTcpClientResponsesTask = Task.Run(async () => await HandleTcpClientResponsesAsync(client.GetStream(), useportUsername, useportPort));
+                    var handleTcpClientResponsesTask = Task.Run(async () => await HandleTcpClientResponsesAsync(client, useportUsername, useportPort, useportConnectionId));
 
                     sharePortCacheModel = new(client, handleTcpClientResponsesTask);
-                    _cache.SetSharePortModel(useportUsername, useportPort, sharePortCacheModel);
+                    _cache.SetSharePortModel(useportUsername, useportPort, useportConnectionId, sharePortCacheModel);
                 }
 
                 await sharePortCacheModel.TcpClient.GetStream().WriteAsync(packetModel.Buffer, 0, packetModel.Count, cancellationToken);
@@ -54,7 +55,7 @@ namespace ZiraLink.Client.Services
             _channel.BasicConsume(queue: queueName, autoAck: false, consumer: consumer);
         }
 
-        private async Task HandleTcpClientResponsesAsync(NetworkStream networkStream, string useportUsername, int useportPort)
+        private async Task HandleTcpClientResponsesAsync(TcpClient tcpClient, string useportUsername, int useportPort, string connectionId)
         {
             var queueName = "server_network_responses";
             var exchangeName = "server_network_responses";
@@ -67,7 +68,7 @@ namespace ZiraLink.Client.Services
             int bytesRead;
             while (true)
             {
-                while ((bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                while ((bytesRead = await tcpClient.GetStream().ReadAsync(buffer, 0, buffer.Length)) > 0)
                 {
                     var packetModel = new PacketModel();
                     packetModel.Buffer = buffer;
@@ -78,7 +79,8 @@ namespace ZiraLink.Client.Services
                     properties.Headers = new Dictionary<string, object>()
                     {
                         { "useport_username", useportUsername },
-                        { "useport_port", useportPort }
+                        { "useport_port", useportPort },
+                        { "useport_connectionid", connectionId }
                     };
 
                     _channel.BasicPublish(exchange: exchangeName, routingKey: string.Empty, basicProperties: properties, body: body);

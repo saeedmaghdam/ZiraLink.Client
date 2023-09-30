@@ -13,9 +13,9 @@ namespace ZiraLink.Client.Framework.Services
         bool TryGetAppProjects(out List<AppProjectDto> appProjects);
         void SetTcpListener(int port, TcpListener tcpListener);
         bool TryGetTcpListener(int port, out TcpListener tcpListener);
-        void SetUsePortModel(int port, UsePortCacheModel usePortCacheModel);
-        bool TryGetUsePortModel(int port, out UsePortCacheModel usePortCacheModel);
-        void SetSharePortModel(string useportUsername, int useportPort, SharePortCacheModel sharePortCacheModel);
-        bool TryGetSharePortModel(string useportUsername, int useportPort, out SharePortCacheModel sharePortCacheModel);
+        void SetUsePortModel(int port, string connectionId, UsePortCacheModel usePortCacheModel);
+        bool TryGetUsePortModel(int port, string connectionId, out UsePortCacheModel usePortCacheModel);
+        void SetSharePortModel(string useportUsername, int useportPort, string connectionId, SharePortCacheModel sharePortCacheModel);
+        bool TryGetSharePortModel(string useportUsername, int useportPort, string connectionId, out SharePortCacheModel sharePortCacheModel);
     }
 }
