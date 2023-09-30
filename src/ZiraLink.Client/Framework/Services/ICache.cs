@@ -1,4 +1,6 @@
-﻿using System.Net.WebSockets;
+﻿using System.Net.Sockets;
+using ZiraLink.Client.Models;
+using ZiraLink.Client.Models.CacheModels;
 
 namespace ZiraLink.Client.Framework.Services
 {
@@ -7,5 +9,13 @@ namespace ZiraLink.Client.Framework.Services
         IWebSocket SetWebSocket(string host, IWebSocket value);
         bool TryGetWebSocket(string host, out IWebSocket value);
         void RemoveWebSocket(string host);
+        void SetAppProjects(List<AppProjectDto> appProjects);
+        bool TryGetAppProjects(out List<AppProjectDto> appProjects);
+        void SetTcpListener(int port, TcpListener tcpListener);
+        bool TryGetTcpListener(int port, out TcpListener tcpListener);
+        void SetUsePortModel(int port, UsePortCacheModel usePortCacheModel);
+        bool TryGetUsePortModel(int port, out UsePortCacheModel usePortCacheModel);
+        void SetSharePortModel(string useportUsername, int useportPort, SharePortCacheModel sharePortCacheModel);
+        bool TryGetSharePortModel(string useportUsername, int useportPort, out SharePortCacheModel sharePortCacheModel);
     }
 }

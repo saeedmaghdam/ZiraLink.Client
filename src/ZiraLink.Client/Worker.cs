@@ -11,16 +11,20 @@ namespace ZiraLink.Client
         private readonly ISignalService _signalService;
         private readonly IHttpRequestHandlerService _httpRequestHandlerService;
         private readonly IWebSocketHandlerService _webSocketHandlerService;
+        private readonly IClientBusService _clientBusService;
+        private readonly IServerBusService _serverBusService;
 
-        public Worker(ILogger<Worker> logger, ISignalService signalService, IHttpRequestHandlerService httpRequestHandlerService, IWebSocketHandlerService webSocketHandlerService)
+        public Worker(ILogger<Worker> logger, ISignalService signalService, IHttpRequestHandlerService httpRequestHandlerService, IWebSocketHandlerService webSocketHandlerService, IClientBusService clientBusService, IServerBusService serverBusService)
         {
             _logger = logger;
             _signalService = signalService;
             _httpRequestHandlerService = httpRequestHandlerService;
             _webSocketHandlerService = webSocketHandlerService;
+            _clientBusService = clientBusService;
+            _serverBusService = serverBusService;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting service ...");
 
@@ -39,9 +43,11 @@ namespace ZiraLink.Client
                 // Set up RabbitMQ connection and channels
                 _httpRequestHandlerService.InitializeHttpRequestConsumer(profile!.Username);
                 _webSocketHandlerService.InitializeWebSocketConsumer(profile!.Username);
+                _clientBusService.InitializeConsumer(profile.Username, cancellationToken);
+                _serverBusService.RequestAppProjects(profile.Username);
 
                 // Wait for the cancellation token to be triggered
-                await Task.Delay(Timeout.Infinite, stoppingToken);
+                await Task.Delay(Timeout.Infinite, cancellationToken);
             });
 
             return Task.CompletedTask;

@@ -109,6 +109,10 @@ builder.Services.AddSingleton<IHttpRequestHandlerService, HttpRequestHandlerServ
 builder.Services.AddSingleton<IWebSocketHandlerService, WebSocketHandlerService>();
 builder.Services.AddSingleton<IHttpHelper, HttpHelper>();
 builder.Services.AddSingleton<ICache, Cache>();
+builder.Services.AddSingleton<IServerBusService, ServerBusService>();
+builder.Services.AddSingleton<IClientBusService, ClientBusService>();
+builder.Services.AddSingleton<ISharePortSocketService, SharePortSocketService>();
+builder.Services.AddSingleton<IUsePortSocketService, UsePortSocketService>();
 builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddSingleton(serviceProvider =>
