@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SampleTcpUdpApplication": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
