@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using DotNet.Testcontainers.Builders;
+using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 
 namespace ZiraLink.Client.IntegrationTests.Fixtures
@@ -12,6 +13,8 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
     [ExcludeFromCodeCoverage]
     public class InfrastructureFixture
     {
+        private readonly IConfiguration _configuration;
+
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly string _certificatePath;
         private readonly string _certificatePassword;
@@ -25,9 +28,16 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
 
         public InfrastructureFixture()
         {
+            var pathToExe = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
+
+            _configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", false, true)
+                .AddEnvironmentVariables()
+                .Build();
+
             _cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-            _certificatePath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)!, "certs", "localhost", "server.pfx");
-            _certificatePassword = "son";
+            _certificatePath = Path.Combine(pathToExe, "certs", "s3d-localhost-server.pfx");
+            _certificatePassword = _configuration["ASPNETCORE_Kestrel__Certificates__Default__Password"]!;
 
             InitializeRabbitMq();
             InitializeSampleWebServer();
@@ -88,7 +98,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
               .WithPortBinding(9443, 443)
               .WithEnvironment("ASPNETCORE_URLS", "http://+:80;https://+:443")
               .WithEnvironment("ASPNETCORE_HTTPS_PORT", "443")
-              .WithEnvironment("ASPNETCORE_Kestrel__Certificates__Default__Path", "server.pfx")
+              .WithEnvironment("ASPNETCORE_Kestrel__Certificates__Default__Path", "/app/certs/s3d-localhost-server.pfx")
               .WithEnvironment("ASPNETCORE_Kestrel__Certificates__Default__Password", CertificatePassword)
               .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(r => r.ForPort(80)))
               .Build();
@@ -98,7 +108,7 @@ namespace ZiraLink.Client.IntegrationTests.Fixtures
 
         private bool RemoteCertificateValidationCallback(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {
-            string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
+            string expectedThumbprint = _configuration["ZIRALINK_CERT_THUMBPRINT_LOCALHOST"]!;
             if (certificate!.GetCertHashString() == expectedThumbprint)
                 return true;
 

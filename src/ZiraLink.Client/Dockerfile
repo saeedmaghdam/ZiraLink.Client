@@ -2,8 +2,8 @@
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS base
 WORKDIR /app
-EXPOSE 8196
-EXPOSE 8197
+EXPOSE 80
+EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS restore
 WORKDIR /src
@@ -26,14 +26,9 @@ COPY --from=publish /app/publish .
 
 RUN apt-get update && apt-get install -y ca-certificates grep netcat-openbsd iputils-ping iproute2
 
-COPY ./certs/server.pfx /app/server.pfx
-
-COPY ./certs/ca.crt /usr/local/share/ca-certificates/ca.crt
-COPY ./certs/server.crt /usr/local/share/ca-certificates/server.crt
-COPY ./certs/server.key /usr/local/share/ca-certificates/server.key
-COPY ./certs/localhost/ca.crt /usr/local/share/ca-certificates/ca-localhost.crt
-COPY ./certs/localhost/server.crt /usr/local/share/ca-certificates/server-localhost.crt
-COPY ./certs/localhost/server.key /usr/local/share/ca-certificates/server-localhost.key
+COPY ./certs/*.pfx /app/certs/
+COPY ./certs/*.crt /usr/local/share/ca-certificates/
+COPY ./certs/*.key /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
 ENTRYPOINT ["dotnet", "ZiraLink.Client.dll"]

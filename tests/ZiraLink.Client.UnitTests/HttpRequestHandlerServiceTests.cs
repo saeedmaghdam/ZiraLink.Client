@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using Moq;
 using RabbitMQ.Client;

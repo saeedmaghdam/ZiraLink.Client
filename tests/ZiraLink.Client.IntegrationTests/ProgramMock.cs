@@ -17,11 +17,9 @@ using Serilog;
 var builder = WebApplication.CreateBuilder();
 
 var pathToExe = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
-Directory.SetCurrentDirectory(pathToExe!);
 
 IConfiguration Configuration = new ConfigurationBuilder()
-    .SetBasePath(pathToExe)
-    .Add(new CustomConfigurationSource())
+    .AddJsonFile("appsettings.json", false, true)
     .AddEnvironmentVariables()
     .Build();
 

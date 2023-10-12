@@ -11,8 +11,8 @@ namespace ZiraLink.Client.Helpers
 
         public CertificateHelper(IConfiguration configuration)
         {
-            _pfxPath = configuration["ASPNETCORE_Kestrel__Certificates__Default__Path"];
-            _pfxPassword = configuration["ASPNETCORE_Kestrel__Certificates__Default__Password"];
+            _pfxPath = configuration["ASPNETCORE_Kestrel:Certificates:Default:Path"];
+            _pfxPassword = configuration["ASPNETCORE_Kestrel:Certificates:Default:Password"];
         }
 
         public void InstallCertificate()

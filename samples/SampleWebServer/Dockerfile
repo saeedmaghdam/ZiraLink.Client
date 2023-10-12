@@ -7,10 +7,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["./SampleWebServer.csproj", "./"]
+COPY ["./samples/SampleWebServer/SampleWebServer.csproj", "./"]
 RUN dotnet restore "./SampleWebServer.csproj"
-COPY . .
-WORKDIR "."
+COPY ./samples/SampleWebServer .
 RUN dotnet build "SampleWebServer.csproj" -c Release -o /app/build
 
 FROM build AS publish
@@ -20,11 +19,9 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-COPY ./certs/server.pfx /app/server.pfx
-
-COPY ./certs/ca.crt /usr/local/share/ca-certificates/ca.crt
-COPY ./certs/server.crt /usr/local/share/ca-certificates/server.crt
-COPY ./certs/server.key /usr/local/share/ca-certificates/server.key
+COPY ./certs/*.pfx /app/certs/
+COPY ./certs/*.crt /usr/local/share/ca-certificates/
+COPY ./certs/*.key /usr/local/share/ca-certificates/
 RUN update-ca-certificates
 
 ENTRYPOINT ["dotnet", "SampleWebServer.dll"]

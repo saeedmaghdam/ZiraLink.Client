@@ -1,31 +1,32 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Reflection;
-using Duende.Bff.Yarp;
+﻿using Duende.Bff.Yarp;
 using IdentityModel;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
-using ZiraLink.Client;
-using ZiraLink.Client.Helpers;
-using ZiraLink.Client.Application;
-using ZiraLink.Client.Services;
-using ZiraLink.Client.Framework.Services;
-using ZiraLink.Client.Framework.Application;
-using ZiraLink.Client.Framework.Helpers;
 using RabbitMQ.Client;
 using Serilog;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Security;
+using System.Reflection;
+using ZiraLink.Client;
+using ZiraLink.Client.Application;
+using ZiraLink.Client.Framework.Application;
+using ZiraLink.Client.Framework.Helpers;
+using ZiraLink.Client.Framework.Services;
+using ZiraLink.Client.Helpers;
+using ZiraLink.Client.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var pathToExe = Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location);
-Directory.SetCurrentDirectory(pathToExe!);
 
 IConfiguration Configuration = new ConfigurationBuilder()
     .SetBasePath(pathToExe)
-    .Add(new CustomConfigurationSource())
+    //.Add(new CustomConfigurationSource())
+    .AddJsonFile("appsettings.json", false, true)
+    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", false, true)
     .AddEnvironmentVariables()
     .Build();
 
@@ -39,7 +40,7 @@ if (Configuration["ASPNETCORE_ENVIRONMENT"] == "Test")
 {
     ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
     {
-        string expectedThumbprint = "10CE57B0083EBF09ED8E53CF6AC33D49B3A76414";
+        string expectedThumbprint = Configuration["ZIRALINK_CERT_THUMBPRINT_LOCALHOST"]!;
         if (certificate!.GetCertHashString() == expectedThumbprint)
             return true;
 
@@ -145,20 +146,22 @@ builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
-if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Test")
-{
-    var hostHelper = app.Services.GetRequiredService<IHostsHelper>();
-    hostHelper.ConfigureDns();
+// Configure the HTTP request pipeline.
 
-    var certificateHelper = app.Services.GetRequiredService<ICertificateHelper>();
-    certificateHelper.InstallCertificate();
+//if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Test")
+//{
+//    var hostHelper = app.Services.GetRequiredService<IHostsHelper>();
+//    hostHelper.ConfigureDns();
 
-    app.Use((context, next) =>
-    {
-        context.Request.Scheme = "https";
-        return next(context);
-    });
-}
+//    var certificateHelper = app.Services.GetRequiredService<ICertificateHelper>();
+//    certificateHelper.InstallCertificate();
+
+//    app.Use((context, next) =>
+//    {
+//        context.Request.Scheme = "https";
+//        return next(context);
+//    });
+//}
 
 app.UseForwardedHeaders();
 

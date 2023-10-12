@@ -1,36 +1,22 @@
-﻿{
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:35405",
-      "sslPort": 44320
+      "applicationUrl": "http://localhost:62786",
+      "sslPort": 44347
     }
   },
   "profiles": {
     "ZiraLink.Client": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://client.ziralink.local:8197",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
       "launchBrowser": true,
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "Docker": {
-      "commandName": "Docker",
-      "launchBrowser": false,
-      "launchUrl": "https://client.ziralink.local:8197",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Test"
-      }
+      },
+      "dotnetRunMessages": true
     }
   }
 }
