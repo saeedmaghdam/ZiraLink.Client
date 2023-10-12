@@ -34,8 +34,10 @@ namespace ZiraLink.Client
                 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Test")
                     fileName = "profile.test";
 
+                _logger.LogInformation($"Profile: {fileName}");
                 if (!System.IO.File.Exists(fileName))
                     _signalService.WaitOne();
+                _logger.LogInformation($"Profile Is Readly!: {fileName}");
 
                 var content = System.IO.File.ReadAllText(fileName);
                 var profile = JsonSerializer.Deserialize<ProfileViewModel>(content);
