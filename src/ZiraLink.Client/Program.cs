@@ -1,4 +1,4 @@
-﻿using Duende.Bff.Yarp; 
+﻿using Duende.Bff.Yarp;
 using IdentityModel;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
