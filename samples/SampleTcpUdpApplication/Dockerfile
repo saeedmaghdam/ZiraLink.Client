@@ -7,10 +7,9 @@ EXPOSE 5555/udp
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["./SampleTcpUdpApplication.csproj", "./"]
+COPY ["./samples/SampleTcpUdpApplication/SampleTcpUdpApplication.csproj", "./"]
 RUN dotnet restore "./SampleTcpUdpApplication.csproj"
-COPY . .
-WORKDIR "."
+COPY ./samples/SampleTcpUdpApplication .
 RUN dotnet build "SampleTcpUdpApplication.csproj" -c Release -o /app/build
 
 FROM build AS publish
@@ -20,6 +19,10 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-ENV PROTOCOL=TCP
+COPY ./certs/*.pfx /app/certs/
+COPY ./certs/*.crt /usr/local/share/ca-certificates/
+COPY ./certs/*.key /usr/local/share/ca-certificates/
+RUN update-ca-certificates
 
+ENV PROTOCOL=TCP
 CMD ["sh", "-c", "dotnet SampleTcpUdpApplication.dll server --port 5555 --protocol $PROTOCOL"]
