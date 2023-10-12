@@ -671,3 +671,5 @@ tools/gulp-tasks/cldr/cldr-data/
 
 # Husky
 .husky/_
+
+/src/ZiraLink.Client/profile
