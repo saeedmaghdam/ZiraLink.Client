@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -40,19 +40,38 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="certs\s3d-ca.crt">
+    <Folder Include="certs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\certs\s3d-ca.crt" Link="certs\s3d-ca.crt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="certs\s3d-local-ziralink-server.crt">
+    <None Include="..\..\certs\s3d-local-ziralink-server.crt" Link="certs\s3d-local-ziralink-server.crt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="certs\s3d-local-ziralink-server.key">
+    <None Include="..\..\certs\s3d-local-ziralink-server.key" Link="certs\s3d-local-ziralink-server.key">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="certs\s3d-local-ziralink-server.pfx">
+    <None Include="..\..\certs\s3d-local-ziralink-server.pfx" Link="certs\s3d-local-ziralink-server.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="certs\s3d-localhost-server.pfx">
+    <None Include="..\..\certs\s3d-localhost-server.crt" Link="certs\s3d-localhost-server.crt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\certs\s3d-localhost-server.key" Link="certs\s3d-localhost-server.key">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\certs\s3d-localhost-server.pfx" Link="certs\s3d-localhost-server.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\certs\s3d-me-localdev-server.crt" Link="certs\s3d-me-localdev-server.crt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\certs\s3d-me-localdev-server.key" Link="certs\s3d-me-localdev-server.key">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\certs\s3d-me-localdev-server.pfx" Link="certs\s3d-me-localdev-server.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
